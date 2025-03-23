@@ -22,7 +22,7 @@ export default function Login({ navigation }) {
     const cargarSerialGuardado = async () => {
       try {
         const serialGuardado = await AsyncStorage.getItem("serialTelefono");
-        
+
         if (!serialGuardado) {
           Alert.alert("Error", "Teléfono no configurado, comunícate con TI");
           return;
@@ -41,14 +41,14 @@ export default function Login({ navigation }) {
       Alert.alert("Error", "Por favor ingrese usuario y contraseña");
       return;
     }
-  
+
     if (!serialTelefono) {
       Alert.alert("Error", "Teléfono no configurado, comunícate con TI");
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       // Intentar iniciar sesión
       const response = await fetch(BASE_URL_ASISTENCIAS + "loginMarcacion", {
@@ -57,66 +57,78 @@ export default function Login({ navigation }) {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ username: usuario, password: password, serialTelefono }),
+        body: JSON.stringify({
+          username: usuario,
+          password: password,
+          serialTelefono,
+        }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.status === 404) {
-        Alert.alert("Error", "Usuario o contraseña incorrectos");
-        setLoading(false);
+        Alert.alert("Error", "Telefono no autorizado, comunícate con TI");
         return;
       }
-  
+
+      if (response.status === 401) {
+        Alert.alert("Error", "Usuario o contraseña incorrectos");
+        return;
+      }
+
       if (!response.ok) {
         Alert.alert("Error", data.message || "Ocurrió un error en el login");
-        setLoading(false);
         return;
       }
-  
+
       await AsyncStorage.setItem("token", data.token);
-  
+      const token = await AsyncStorage.getItem("token");
+
       // Validar el teléfono en la base de datos
       const response2 = await fetch(BASE_URL_ASISTENCIAS + "validarTelefono", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ serialTelefono }),
       });
-  
+
       const sedeData = await response2.json();
-  
+
       if (response2.status === 404) {
-        Alert.alert("Error", sedeData.message || "No se encontró información de la sede, comunicate con TI");
-        setLoading(false);
+        Alert.alert(
+          "Error",
+          sedeData.message ||
+            "No se encontró información de la sede, comunícate con TI"
+        );
         return;
       }
-  
+
       if (!response2.ok) {
         Alert.alert("Error", "Error validando el teléfono");
-        setLoading(false);
         return;
       }
-  
+
       // Guardar información de la sede
       await AsyncStorage.setItem("sedeInfo", JSON.stringify(sedeData));
-  
+
       // Mostrar datos en alerta
       Alert.alert(
         "Sede Validada",
-        `Latitud: ${sedeData.latitud}\nLongitud: ${sedeData.longitud || "No disponible"}\nSede: ${sedeData.bod_nombre || "No disponible"}`
+        `Latitud: ${sedeData.latitud}\nLongitud: ${
+          sedeData.longitud || "No disponible"
+        }\nSede: ${sedeData.bod_nombre || "No disponible"}`
       );
-  
+
       navigation.replace("Home");
     } catch (error) {
       Alert.alert("Error", "Ocurrió un problema al conectar con el servidor");
+    } finally {
+      setLoading(false); // Se ejecuta siempre, sin importar el resultado
     }
-  
-    setLoading(false);
   };
-  
 
   return (
     <View style={styles.padre}>
@@ -165,9 +177,9 @@ export default function Login({ navigation }) {
           </TouchableOpacity>
         </View>
 
-          <Text style={{ color: "red", textAlign: "center" }}>
-            {serialTelefono ? serialTelefono : "Sin rerial"}
-          </Text>
+        <Text style={{ color: "red", textAlign: "center" }}>
+          {serialTelefono ? serialTelefono : "Sin rerial"}
+        </Text>
       </View>
     </View>
   );

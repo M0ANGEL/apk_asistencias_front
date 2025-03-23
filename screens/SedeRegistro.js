@@ -14,7 +14,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
-const SedeRegistro = () => {
+const SedeRegistro = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
   const [cargandoBodegas, setCargandoBodegas] = useState(true);
@@ -27,8 +27,26 @@ const SedeRegistro = () => {
     const obtenerBodegas = async () => {
       setCargandoBodegas(true);
       try {
-        const response = await fetch(BASE_URL_ASISTENCIAS + "bodegas");
+        // Obtener el token almacenado
+        const token = await AsyncStorage.getItem("token");
+
+        if (!token) {
+          Alert.alert("Error", "No se encontró el token de autenticación.");
+          setCargandoBodegas(false);
+          return;
+        }
+
+        const response = await fetch(BASE_URL_ASISTENCIAS + "bodegas", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`, // Enviar el token en el encabezado
+          },
+        });
+
         const data = await response.json();
+
         if (response.ok) {
           setBodegas(
             data.map((bodega) => ({
@@ -37,7 +55,10 @@ const SedeRegistro = () => {
             }))
           );
         } else {
-          Alert.alert("Error", "No se pudieron cargar las bodegas");
+          Alert.alert(
+            "Error",
+            data.message || "No se pudieron cargar las bodegas"
+          );
         }
       } catch (error) {
         Alert.alert("Error", "No se pudo conectar con el servidor");
@@ -122,7 +143,7 @@ const SedeRegistro = () => {
       if (response.ok) {
         Alert.alert("Éxito", "La sede se registró exitosamente.");
         setLocation(null);
-        navigation.navigation("MenuConfigLogin");
+        navigation.replace("MenuConfigLogin");
       } else {
         Alert.alert("Error", result.message || "No se pudo registrar.");
       }
@@ -189,6 +210,13 @@ const SedeRegistro = () => {
               <Text style={styles.textoboton}>Registrar Sede</Text>
             )}
           </TouchableOpacity>
+        </View>
+
+        <View style={{ marginTop: "12%" }}>
+          <Text style={{ color: "red" }}>
+            La sede se registrara con la ubicacion del telefono actual, si ya
+            esta registrada podras modificarla.
+          </Text>
         </View>
       </View>
     </View>

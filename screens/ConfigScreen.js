@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
-const ConfigScreen = () => {
+const ConfigScreen = ({ navigation }) => {
   const [serialTelefono, setSerialTelefono] = useState("");
   const [marcaTelefono, setMarcaTelefono] = useState("");
   const [activoTelefono, setActivoTelefono] = useState("");
@@ -34,7 +34,7 @@ const ConfigScreen = () => {
   // }, []);
 
   // ✅ Guardar el serial en el almacenamiento del teléfono
-  
+
   const guardarSerial = async (serial) => {
     try {
       await AsyncStorage.setItem("serialTelefono", serial);
@@ -45,38 +45,40 @@ const ConfigScreen = () => {
 
   // 📤 Enviar datos al servidor Laravel
   const handleRegister = async () => {
-    if (!serialTelefono || !marcaTelefono ||!activoTelefono ) {
+    if (!serialTelefono || !marcaTelefono || !activoTelefono) {
       Alert.alert("Error", "Faltan datos por completar.");
       return;
     }
-
+  
     setLoading(true);
     const data = {
       serial_email: serialTelefono,
       marca: marcaTelefono,
       activo: activoTelefono,
-
     };
 
-    try {
-      const response = await fetch(
-        BASE_URL_ASISTENCIAS + "registrar-telefono",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+    const token = await AsyncStorage.getItem("token");
 
+  
+    try {
+      const response = await fetch(BASE_URL_ASISTENCIAS + "registrar-telefono", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+
+        },
+        body: JSON.stringify(data),
+      });
+  
       const result = await response.json();
       console.log("Respuesta del servidor:", result);
-
-      if (response.ok) {
+  
+      if (response.ok) { 
         Alert.alert("Éxito", "Teléfono registrado correctamente.");
-        guardarSerial(serialTelefono); // Guardar serial para que quede almacenado
+        guardarSerial(serialTelefono);
+        navigation.replace("MenuConfigLogin");
       } else {
         Alert.alert("Error", result.message || "No se pudo registrar.");
       }
@@ -84,9 +86,10 @@ const ConfigScreen = () => {
       console.log("Error enviando datos:", error);
       Alert.alert("Error", "No se pudo conectar con el servidor.");
     }
-
+  
     setLoading(false);
   };
+  
 
   return (
     <View style={styles.padre}>

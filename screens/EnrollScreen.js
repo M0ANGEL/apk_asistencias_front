@@ -14,10 +14,10 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
-const EnrollScreen = ({ navigation }) => {
-  const [cedula, setCedula] = useState("");
+const EnrollScreen = ({ navigation, route }) => {
+  const [cedula, setCedula] = useState(route.params?.cedulaPreview || "");
   const [photo, setPhoto] = useState(null);
-  const [estadoFoto, setEstadoFoto] = useState(false);
+  const [estadoFoto, setEstadoFoto] = useState("");
   const [loading, setLoading] = useState(false);
 
   const takePhoto = async () => {
@@ -35,6 +35,7 @@ const EnrollScreen = ({ navigation }) => {
       allowsEditing: false,
       aspect: [4, 3],
       quality: 1,
+      cameraType: ImagePicker.CameraType.front, // Cámara frontal
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -90,43 +91,46 @@ const EnrollScreen = ({ navigation }) => {
       Alert.alert("Error", "Por favor, ingresa tu cédula y toma una foto.");
       return;
     }
-  
+
     try {
       const token = await AsyncStorage.getItem("token");
+      const serialGuardado = await AsyncStorage.getItem("serialTelefono");
+
       if (!token) {
         Alert.alert("Error", "No se encontró el token de autenticación.");
         return;
       }
-  
+
       const formData = new FormData();
       formData.append("cedula", cedula);
+      formData.append("serial", serialGuardado);
       formData.append("photo", {
         uri: photo,
         name: `${cedula}.jpg`,
         type: "image/jpeg",
       });
-  
-      const response = await fetch(
-        BASE_URL_ASISTENCIAS+"enrolar",
-        {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+
+      const response = await fetch(BASE_URL_ASISTENCIAS + "enrolar", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const result = await response.json();
-  
+
       if (response.ok) {
         Alert.alert("Éxito", "Usuario enrolado correctamente.");
         setCedula("");
         setPhoto(null);
       } else {
         if (result.error === "Usuario ya está enrolado") {
-          Alert.alert("Usuario ya registrado", "Este usuario ya ha sido enrolado anteriormente.");
+          Alert.alert(
+            "Usuario ya registrado",
+            "Este usuario ya ha sido enrolado anteriormente."
+          );
         } else if (result.error === "Persona no encontrada") {
           Alert.alert(
             "Persona no encontrada",
@@ -143,14 +147,16 @@ const EnrollScreen = ({ navigation }) => {
             ]
           );
         } else {
-          Alert.alert("Error", result.error || "Hubo un problema al guardar el usuario.");
+          Alert.alert(
+            "Error",
+            result.error || "Hubo un problema al guardar el usuario."
+          );
         }
       }
     } catch (error) {
       Alert.alert("Error", "No se pudo conectar con el servidor.");
     }
   };
-  
 
   return (
     <View style={styles.padre}>
@@ -201,7 +207,7 @@ const EnrollScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.PadreBoton}>
+      {/* <View style={styles.PadreBoton}>
         <TouchableOpacity
           style={styles.cajaButton}
           onPress={() => navigation.navigate("RegistroUsuario")}
@@ -213,7 +219,7 @@ const EnrollScreen = ({ navigation }) => {
             <Text style={styles.textoboton}>Marcar Asistencia</Text>
           )}
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 };

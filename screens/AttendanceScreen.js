@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   Alert,
   StyleSheet,
   Image,
@@ -13,10 +12,8 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
-const AttendanceScreen = () => {
-  const [cedula, setCedula] = useState("");
+const AttendanceScreen = ({ navigation }) => {
   const [photo, setPhoto] = useState(null);
-  const [estadoFoto, setEstadoFoto] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const takePhoto = async () => {
@@ -33,48 +30,75 @@ const AttendanceScreen = () => {
       allowsEditing: false,
       aspect: [4, 3],
       quality: 1,
+      cameraType: ImagePicker.CameraType.front, // Cámara frontal
     });
 
     if (!result.canceled && result.assets?.length > 0) {
-      setPhoto(result.assets[0].uri);
+      const photoUri = result.assets[0].uri;
+      setPhoto(photoUri);
+      validateAttendance(photoUri); // 🔹 Llamar a la validación automáticamente
     }
   };
 
-  const validateAttendance = async () => {
-    if (!cedula || !photo) {
-      Alert.alert("Error", "Por favor, ingresa tu cédula y toma una foto.");
+  const validateAttendance = async (photoUri) => {
+    if (!photoUri) {
+      Alert.alert("Error", "No se ha tomado una foto.");
       return;
     }
 
+    setLoading(true);
+    const serialGuardado = await AsyncStorage.getItem("serialTelefono");
+
     const formData = new FormData();
-    formData.append("cedula", cedula);
+    formData.append("serial", serialGuardado);
     formData.append("foto", {
-      uri: photo,
+      uri: photoUri,
       type: "image/jpeg",
       name: "photo.jpg",
     });
 
     try {
-      const response = await fetch(
-        BASE_URL_ASISTENCIAS+"registrar-marcacion",
-        {
-          method: "POST",
-          body: formData,
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const token = await AsyncStorage.getItem("token");
+
+      const response = await fetch(BASE_URL_ASISTENCIAS + "validarfoto2", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
-      if (data.success) {
-        Alert.alert("Éxito", "Asistencia registrada correctamente.");
+
+      if (data.enrolar) {
+        Alert.alert(
+          "Usuario no enrolado",
+          "¿Quieres enrolarte?",
+          [
+            { text: "No", style: "cancel" },
+            {
+              text: "Sí",
+              onPress: () => {
+                navigation.navigate("Enrolar");
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      } else if (data.success) {
+        setPhoto(null);
+        Alert.alert("Éxito", " 😁 Asistencia registrada correctamente.");
       } else {
         Alert.alert(
           "Error",
-          data.message || "La foto no coincide con el usuario registrado."
+          data.message || "🫤 La foto no coincide con el usuario registrado."
         );
       }
     } catch (error) {
       Alert.alert("Error", "Hubo un problema al validar la asistencia.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,19 +106,6 @@ const AttendanceScreen = () => {
     <View style={styles.padre}>
       <View>
         <Image source={require("../assets/logo.png")} style={styles.profile} />
-      </View>
-
-      <View style={styles.cajatexto}>
-        <TextInput
-          placeholder="Ingresa tu cédula"
-          style={{ paddingHorizontal: "20%" }}
-          value={cedula}
-          onChangeText={(text) => {
-            const numericText = text.replace(/[^0-9]/g, "");
-            setCedula(numericText);
-          }}
-          keyboardType="numeric"
-        />
       </View>
 
       <View style={styles.PadreBoton}>
@@ -109,20 +120,6 @@ const AttendanceScreen = () => {
             <Text style={styles.textoboton}>
               {photo ? "Foto Guardada" : "Tomar Foto"}
             </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.PadreBoton}>
-        <TouchableOpacity
-          style={styles.cajaButtonCrear}
-          onPress={validateAttendance}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.textoboton}>Validar Asistencia</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -143,26 +140,6 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     marginBottom: 10,
   },
-  tarjeta: {
-    margin: 20,
-    width: "90%",
-    height: 400,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
-  },
-  cajatexto: {
-    paddingVertical: 20,
-    backgroundColor: "#cccccc40",
-    borderRadius: 20,
-    marginBottom: 10,
-    marginVertical: 10,
-  },
   PadreBoton: {
     alignItems: "center",
   },
@@ -175,31 +152,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cajaButtonCrear: {
-    width: 200,
-    backgroundColor: "#0a2da8",
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginTop: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   textoboton: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
-  },
-  configuracion: {
-    marginBottom: 20,
-    position: "absolute",
-    top: 20,
-    right: 10,
-    backgroundColor: "#FFC300",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    elevation: 5,
   },
   cajaButtonFotoTomada: {
     backgroundColor: "#28a745", // Verde cuando la foto ha sido tomada
@@ -207,3 +164,4 @@ const styles = StyleSheet.create({
 });
 
 export default AttendanceScreen;
+

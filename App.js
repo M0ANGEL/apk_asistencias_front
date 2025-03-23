@@ -42,7 +42,7 @@ const App = () => {
           name="ConfigLogin"
           component={ConfigLoginScreen}
           options={{
-            title: "Configuracion del sistema login",
+            title: "Configuracion del sistema ",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
@@ -62,7 +62,7 @@ const App = () => {
           name="Config"
           component={ConfigScreen}
           options={{
-            title: "Configuracion del sistema",
+            title: "Configuracion telefono",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
@@ -82,7 +82,7 @@ const App = () => {
           name="Enrolar"
           component={EnrollScreen}
           options={{
-            title: "Crear usuario para registro",
+            title: "Enrollar usuario",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
@@ -92,7 +92,7 @@ const App = () => {
           name="RegistroUsuario"
           component={AttendanceScreen}
           options={{
-            title: "Registro de Asistencias FARMART",
+            title: "Registro de Asistencias",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },

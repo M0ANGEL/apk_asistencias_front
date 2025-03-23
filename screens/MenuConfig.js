@@ -28,17 +28,29 @@ const MenuConfigScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.tarjeta}>
-        <View style={styles.PadreBoton}>
-          <TouchableOpacity
-            style={[
-              styles.cajaButton,
-              { backgroundColor: serialRegistrado ? "green" : "black" },
-            ]}
-            onPress={() => navigation.navigate("Config")}
-          >
-            <Text style={styles.textoboton}>{serialRegistrado ?  " Teléfono Registrado" :"Registrar Teléfono a sede"}</Text>
-          </TouchableOpacity>
-        </View>
+        {serialRegistrado ? (
+          <View style={styles.PadreBoton}>
+            <TouchableOpacity
+              style={[styles.cajaButton, { backgroundColor: "green" }]}
+              onPress={() =>
+                Alert.alert(
+                  "Telefono Registrado, modifcar en sebthi modulo, marcaciones/telefono"
+                )
+              }
+            >
+              <Text style={styles.textoboton}>Teléfono Registrado</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.PadreBoton}>
+            <TouchableOpacity
+              style={[styles.cajaButton, { backgroundColor: "black" }]}
+              onPress={() => navigation.navigate("Config")}
+            >
+              <Text style={styles.textoboton}>Registrar Teléfono a sede</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.PadreBoton}>
           <TouchableOpacity
@@ -48,6 +60,16 @@ const MenuConfigScreen = ({ navigation }) => {
             <Text style={styles.textoboton}>Registrar Sede con Teléfono</Text>
           </TouchableOpacity>
         </View>
+
+        {serialRegistrado ? (
+          <View style={styles.PadreBoton}>
+            <Text style={{ color: "blue", marginTop: 30 }}>
+              Cierra la APP y entra de nuevo para tomar cambios.
+            </Text>
+          </View>
+        ) : (
+          ""
+        )}
       </View>
     </View>
   );

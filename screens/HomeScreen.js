@@ -27,7 +27,10 @@ const HomeScreen = () => {
       // Solicitar permisos de ubicación
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Habilita el GPS para marcar asistencia.");
+        Alert.alert(
+          "Permiso denegado",
+          "Habilita el GPS para marcar asistencia."
+        );
         return;
       }
 
@@ -54,16 +57,18 @@ const HomeScreen = () => {
     })();
   }, []);
 
-
-   // Función para calcular distancia entre dos coordenadas (Haversine Formula)
-   const calcularDistancia = (lat1, lon1, lat2, lon2) => {
+  // Función para calcular distancia entre dos coordenadas (Haversine Formula)
+  const calcularDistancia = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3; // Radio de la Tierra en metros
     const rad = Math.PI / 180;
     const dLat = (lat2 - lat1) * rad;
     const dLon = (lon2 - lon1) * rad;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(lat1 * rad) *
+        Math.cos(lat2 * rad) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -78,9 +83,6 @@ const HomeScreen = () => {
     }
     navigation.navigate("RegistroUsuario");
   };
-
-
-
 
   return (
     <View style={styles.padre}>
@@ -98,18 +100,25 @@ const HomeScreen = () => {
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.textoboton}>Registrar Usuario</Text>
+              <Text style={styles.textoboton}>Enrollar Usuario</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.PadreBoton}>
           <TouchableOpacity
-            style={[styles.cajaButton, { backgroundColor: dentroDelRango ? "#000000" : "#FF0000" }]}
+            style={[
+              styles.cajaButton,
+              { backgroundColor: dentroDelRango ? "#000000" : "#FF0000" },
+            ]}
             disabled={loading}
             onPress={handleMarcarAsistencia}
           >
-            {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.textoboton}>Marcar asistencia</Text>}
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.textoboton}>Marcar asistencia</Text>
+            )}
           </TouchableOpacity>
         </View>
 
