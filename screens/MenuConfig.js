@@ -34,7 +34,7 @@ const MenuConfigScreen = ({ navigation }) => {
               style={[styles.cajaButton, { backgroundColor: "green" }]}
               onPress={() =>
                 Alert.alert(
-                  "Telefono Registrado, modifcar en sebthi modulo, marcaciones/telefono"
+                  "El serial ya fue registrado, este no puede ser modificado."
                 )
               }
             >

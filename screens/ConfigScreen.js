@@ -8,195 +8,239 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
 const ConfigScreen = ({ navigation }) => {
-  const [serialTelefono, setSerialTelefono] = useState("");
-  const [marcaTelefono, setMarcaTelefono] = useState("");
+  const [serialTelefono, setSerialTelefono] = useState("Obteniendo serial...");
+  const [marcaTelefono, setMarcaTelefono] = useState("Detectando marca...");
   const [activoTelefono, setActivoTelefono] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // // ✅ Cargar el serial guardado al iniciar la app
-  // useEffect(() => {
-  //   const cargarSerialGuardado = async () => {
-  //     try {
-  //       const serialGuardado = await AsyncStorage.getItem("serialTelefono");
-  //       if (serialGuardado) {
-  //         setSerialTelefono(serialGuardado);
-  //       }
-  //     } catch (error) {
-  //       console.log("Error al cargar el serial guardado:", error);
-  //     }
-  //   };
-  //   cargarSerialGuardado();
-  // }, []);
+  useEffect(() => {
+    const obtenerInformacionDispositivo = async () => {
+      try {
+        // 1. Verificar si es un dispositivo físico
+        if (!Device.isDevice) {
+          const simulatedSerial = "SIMULADOR-" + Math.random().toString(36).substring(2, 8);
+          setSerialTelefono(simulatedSerial);
+          setMarcaTelefono("SIMULADOR");
+          await AsyncStorage.setItem("serialTelefono", simulatedSerial);
+          return;
+        }
 
-  // ✅ Guardar el serial en el almacenamiento del teléfono
+        // 2. Intentar recuperar serial guardado
+        const storedSerial = await AsyncStorage.getItem("serialTelefono");
+        if (storedSerial) {
+          setSerialTelefono(storedSerial);
+          
+          // Intentar recuperar marca guardada si existe
+          const storedBrand = await AsyncStorage.getItem("@marcaTelefono");
+          if (storedBrand) {
+            setMarcaTelefono(storedBrand);
+          }
+          return;
+        }
 
-  const guardarSerial = async (serial) => {
-    try {
-      await AsyncStorage.setItem("serialTelefono", serial);
-    } catch (error) {
-      console.log("Error al guardar el serial:", error);
-    }
-  };
+        // 3. Generar nuevo serial único si no existe
+        let deviceSerial = "";
+        
+        if (Platform.OS === 'android') {
+          deviceSerial = Application.androidId || 
+                       `AND-${Device.osBuildId || Math.random().toString(36).substring(2, 10)}`;
+        } else {
+          deviceSerial = await Application.getIosIdForVendorAsync() || 
+                       `IOS-${Math.random().toString(36).substring(2, 10)}`;
+        }
 
-  // 📤 Enviar datos al servidor Laravel
-  const handleRegister = async () => {
-    if (!serialTelefono || !marcaTelefono || !activoTelefono) {
-      Alert.alert("Error", "Faltan datos por completar.");
-      return;
-    }
-  
-    setLoading(true);
-    const data = {
-      serial_email: serialTelefono,
-      marca: marcaTelefono,
-      activo: activoTelefono,
+        // 4. Formatear serial (ej: "SAM-A12B34C56D")
+        const formattedSerial = `${Device.manufacturer?.substring(0, 3).toUpperCase() || "DEV"}-${deviceSerial.substring(0, 9)}`;
+        setSerialTelefono(formattedSerial);
+        
+        // Guardar el serial inmediatamente
+        await AsyncStorage.setItem("serialTelefono", formattedSerial);
+
+        // 5. Obtener y guardar marca del dispositivo
+        let brand = Device.manufacturer || "Fabricante";
+        if (Platform.OS === 'ios') {
+          brand = Device.modelName?.includes('iPhone') ? 'Apple' : brand;
+        }
+        setMarcaTelefono(brand);
+        await AsyncStorage.setItem("@marcaTelefono", brand);
+
+      } catch (error) {
+        console.error("Error:", error);
+        const fallbackSerial = "ERR-"+Math.random().toString(36).substring(2, 9);
+        setSerialTelefono(fallbackSerial);
+        setMarcaTelefono("Error");
+        await AsyncStorage.setItem("serialTelefono", fallbackSerial);
+      }
     };
 
-    const token = await AsyncStorage.getItem("token");
+    obtenerInformacionDispositivo();
+  }, []);
 
-  
+  const handleRegister = async () => {
+    if (!activoTelefono) {
+      Alert.alert("Campo requerido", "Por favor ingrese el número de activo");
+      return;
+    }
+
+    setLoading(true);
+
     try {
+      // Verificar que tenemos el serial guardado
+      const storedSerial = await AsyncStorage.getItem("serialTelefono");
+      if (!storedSerial) {
+        throw new Error("No se pudo obtener el serial del dispositivo");
+      }
+
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Token no disponible");
+
       const response = await fetch(BASE_URL_ASISTENCIAS + "registrar-telefono", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          serial_email: storedSerial,  // Usamos el serial guardado
+          marca: marcaTelefono,
+          activo: activoTelefono.toUpperCase(),
+        }),
       });
-  
-      const result = await response.json();
-      console.log("Respuesta del servidor:", result);
-  
-      if (response.ok) { 
-        Alert.alert("Éxito", "Teléfono registrado correctamente.");
-        guardarSerial(serialTelefono);
-        navigation.replace("MenuConfigLogin");
-      } else {
-        Alert.alert("Error", result.message || "No se pudo registrar.");
-      }
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Error en el servidor");
+
+      // Guardar confirmación de registro exitoso
+      await AsyncStorage.multiSet([
+        ['@dispositivoRegistrado', 'true'],
+        ['@ultimoActivoRegistrado', activoTelefono.toUpperCase()]
+      ]);
+      
+      Alert.alert("Registro exitoso", "Dispositivo registrado correctamente");
+      navigation.navigate("MenuConfigLogin");
+
     } catch (error) {
-      console.log("Error enviando datos:", error);
-      Alert.alert("Error", "No se pudo conectar con el servidor.");
+      console.error("Error en registro:", error);
+      Alert.alert("Error", error.message || "Error al registrar dispositivo");
+    } finally {
+      setLoading(false);
     }
-  
-    setLoading(false);
   };
-  
 
   return (
-    <View style={styles.padre}>
-      <View>
-        <Image source={require("../assets/logo.png")} style={styles.profile} />
-      </View>
-
-      <View style={styles.tarjeta}>
-        <View style={styles.cajatexto}>
+    <View style={styles.container}>
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
+      
+      
+      <View style={styles.card}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Serial del dispositivo:</Text>
           <TextInput
-            placeholder="Serial del teléfono"
-            style={{ paddingHorizontal: 15 }}
+            style={styles.input}
             value={serialTelefono}
-            onChangeText={(text) => {
-              setSerialTelefono(text);
-              guardarSerial(text); // Guardar el serial en tiempo real
-            }}
-            autoCapitalize="none"
+            editable={false}
           />
         </View>
 
-        <View style={styles.cajatexto}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Marca:</Text>
           <TextInput
-            placeholder="Marca del teléfono"
-            style={{ paddingHorizontal: 15 }}
+            style={styles.input}
             value={marcaTelefono}
             onChangeText={setMarcaTelefono}
+            editable={!marcaTelefono.startsWith("Detectando")}
           />
         </View>
 
-        <View style={styles.cajatexto}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Número de activo*:</Text>
           <TextInput
-            placeholder="Numero activo del teléfono"
-            style={{ paddingHorizontal: 15 }}
+            style={styles.input}
+            placeholder="Ej: FA-1234"
             value={activoTelefono}
             onChangeText={setActivoTelefono}
+            autoCapitalize="characters"
           />
         </View>
 
-        <View style={styles.PadreBoton}>
-          <TouchableOpacity
-            style={styles.cajaButton}
-            disabled={loading}
-            onPress={handleRegister}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.textoboton}>Registrar Teléfono</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Registrar Dispositivo</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  padre: {
+  container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: "#f5f5f5",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
+    paddingTop: 40,
   },
-  profile: {
-    width: 200,
-    height: 200,
-    resizeMode: "contain",
-    marginBottom: 10,
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 30,
   },
-  tarjeta: {
-    margin: 20,
+  card: {
     width: "90%",
-    height: 400,
     backgroundColor: "#fff",
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  cajatexto: {
-    paddingVertical: 20,
-    backgroundColor: "#cccccc40",
-    borderRadius: 20,
-    marginBottom: 10,
-    marginVertical: 10,
+  inputGroup: {
+    marginBottom: 20,
   },
-  PadreBoton: {
+  label: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 5,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: "#fafafa",
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 5,
     alignItems: "center",
+    marginTop: 10,
   },
-  cajaButton: {
-    width: 150,
-    backgroundColor: "#000000",
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginTop: 20,
-    alignItems: "center",
-    justifyContent: "center",
+  buttonDisabled: {
+    backgroundColor: "#6c757d",
   },
-  textoboton: {
+  buttonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
   },
 });
 

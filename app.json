@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Asistencia Farmart",
-    "slug": "Asistencia Farmart",
+    "slug": "asistencia-farmart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -15,14 +15,26 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
+     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.READ_PRIVILEGED_PHONE_STATE"
+      ]
+    }
+
+      
     },
     "web": {
       "favicon": "./assets/logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c4829b80-5ba3-40e7-a168-713a638fe43a"
+      }
     }
   }
-}
+
