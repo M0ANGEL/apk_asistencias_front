@@ -61,6 +61,18 @@ const MenuConfigScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+
+        {serialRegistrado ? (
+           <View style={styles.PadreBoton}>
+           <TouchableOpacity
+             style={styles.cajaButtonEdit}
+             onPress={() => navigation.navigate("EditarUsuario")}
+           >
+             <Text style={styles.textoboton}>Editar Registros Facial </Text>
+           </TouchableOpacity>
+         </View>
+        ) : ("")}
+
         {serialRegistrado ? (
           <View style={styles.PadreBoton}>
             <Text style={{ color: "blue", marginTop: 30 }}>
@@ -110,6 +122,15 @@ const styles = StyleSheet.create({
   },
   PadreBoton: {
     alignItems: "center",
+  },  
+  cajaButtonEdit: {
+    width: 300,
+    backgroundColor: "#f5a21b",
+    borderRadius: 20,
+    paddingVertical: 20,
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   cajaButton: {
     width: 300,

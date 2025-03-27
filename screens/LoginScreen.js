@@ -1,3 +1,4 @@
+
 // import React, { useState, useEffect } from "react";
 // import {
 //   Text,
@@ -11,23 +12,26 @@
 // } from "react-native";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { BASE_URL_ASISTENCIAS } from "../services/api";
+// import { Picker } from "@react-native-picker/picker";
+// import LottieView from "lottie-react-native";
 
 // export default function Login({ navigation }) {
 //   const [usuario, setUsuario] = useState("");
 //   const [password, setPassword] = useState("");
 //   const [loading, setLoading] = useState(false);
 //   const [serialTelefono, setSerialTelefono] = useState("");
+//   const [sedes, setSedes] = useState([]);
+//   const [sedeSeleccionada, setSedeSeleccionada] = useState("");
+//   const [loginExitoso, setLoginExitoso] = useState(false); // Nuevo estado
 
 //   useEffect(() => {
 //     const cargarSerialGuardado = async () => {
 //       try {
 //         const serialGuardado = await AsyncStorage.getItem("serialTelefono");
-
 //         if (!serialGuardado) {
 //           Alert.alert("Error", "Teléfono no configurado, comunícate con TI");
 //           return;
 //         }
-
 //         setSerialTelefono(serialGuardado);
 //       } catch (error) {
 //         console.log("Error al cargar el serial guardado:", error);
@@ -41,7 +45,6 @@
 //       Alert.alert("Error", "Por favor ingrese usuario y contraseña");
 //       return;
 //     }
-
 //     if (!serialTelefono) {
 //       Alert.alert("Error", "Teléfono no configurado, comunícate con TI");
 //       return;
@@ -50,7 +53,6 @@
 //     setLoading(true);
 
 //     try {
-//       // Intentar iniciar sesión
 //       const response = await fetch(BASE_URL_ASISTENCIAS + "loginMarcacion", {
 //         method: "POST",
 //         headers: {
@@ -66,16 +68,6 @@
 
 //       const data = await response.json();
 
-//       if (response.status === 404) {
-//         Alert.alert("Error", "Telefono no autorizado, comunícate con TI");
-//         return;
-//       }
-
-//       if (response.status === 401) {
-//         Alert.alert("Error", "Usuario o contraseña incorrectos");
-//         return;
-//       }
-
 //       if (!response.ok) {
 //         Alert.alert("Error", data.message || "Ocurrió un error en el login");
 //         return;
@@ -84,7 +76,6 @@
 //       await AsyncStorage.setItem("token", data.token);
 //       const token = await AsyncStorage.getItem("token");
 
-//       // Validar el teléfono en la base de datos
 //       const response2 = await fetch(BASE_URL_ASISTENCIAS + "validarTelefono", {
 //         method: "POST",
 //         headers: {
@@ -96,38 +87,47 @@
 //       });
 
 //       const sedeData = await response2.json();
-
-//       if (response2.status === 404) {
-//         Alert.alert(
-//           "Error",
-//           sedeData.message ||
-//             "No se encontró información de la sede, comunícate con TI"
-//         );
-//         return;
-//       }
-
 //       if (!response2.ok) {
 //         Alert.alert("Error", "Error validando el teléfono");
 //         return;
 //       }
 
-//       // Guardar información de la sede
-//       await AsyncStorage.setItem("sedeInfo", JSON.stringify(sedeData));
-
-//       // Mostrar datos en alerta
+//       setSedes(sedeData.sedes || []);
+//       setSedeSeleccionada(sedeData.sedes?.[0]?.id || ""); // Selecciona la primera sede
+//       setLoginExitoso(true); // Habilita la selección de sede
 //       Alert.alert(
-//         "Sede Validada",
-//         `Latitud: ${sedeData.latitud}\nLongitud: ${
-//           sedeData.longitud || "No disponible"
-//         }\nSede: ${sedeData.bod_nombre || "No disponible"}`
+//         "Inicio de sesión exitoso",
+//         "Seleccione su sede antes de continuar."
 //       );
-
-//       navigation.replace("Home");
 //     } catch (error) {
 //       Alert.alert("Error", "Ocurrió un problema al conectar con el servidor");
 //     } finally {
-//       setLoading(false); // Se ejecuta siempre, sin importar el resultado
+//       setLoading(false);
 //     }
+//   };
+
+//   const handleConfirmSede = async () => {
+//     if (!sedeSeleccionada) {
+//       Alert.alert("Error", "Debe seleccionar una sede");
+//       return;
+//     }
+
+//     // Buscar la sede seleccionada en la lista de sedes
+//     const sedeInfo = sedes.find((sede) => sede.id === sedeSeleccionada);
+
+//     if (!sedeInfo) {
+//       Alert.alert("Error", "No se encontró la sede seleccionada.");
+//       return;
+//     }
+
+//     // Guardar solo la información de la sede seleccionada
+//     await AsyncStorage.setItem("sedeInfo", JSON.stringify(sedeInfo));
+
+//     Alert.alert(
+//       "Sede confirmada.",
+//       "Se confirmo la sede con la cual se valida la ubicacion para poder  registrar asistencias"
+//     );
+//     navigation.replace("Home");
 //   };
 
 //   return (
@@ -138,8 +138,15 @@
 //         </TouchableOpacity>
 //       </View>
 
-//       <View>
-//         <Image source={require("../assets/logo.png")} style={styles.profile} />
+//       {/* <Image source={require("../assets/image.png")} style={styles.profile} /> */}
+
+//       <View style={styles.loadingContainer}>
+//         <LottieView
+//           source={require("../assets/de1.json")}
+//           autoPlay
+//           loop
+//           style={styles.lottie}
+//         />
 //       </View>
 
 //       <View style={styles.tarjeta}>
@@ -157,28 +164,56 @@
 //           <TextInput
 //             placeholder="Contraseña"
 //             style={{ paddingHorizontal: 15 }}
-//             secureTextEntry={true}
+//             secureTextEntry
 //             value={password}
 //             onChangeText={setPassword}
 //           />
 //         </View>
 
-//         <View style={styles.PadreBoton}>
-//           <TouchableOpacity
-//             style={styles.cajaButton}
-//             onPress={handleLogin}
-//             disabled={loading}
-//           >
-//             {loading ? (
-//               <ActivityIndicator size="small" color="#fff" />
-//             ) : (
-//               <Text style={styles.textoboton}>Iniciar Sesión</Text>
-//             )}
-//           </TouchableOpacity>
-//         </View>
+//         {!loginExitoso ? (
+//           <View style={styles.PadreBoton}>
+//             <TouchableOpacity
+//               style={styles.cajaButton}
+//               onPress={handleLogin}
+//               disabled={loading}
+//             >
+//               {loading ? (
+//                 <ActivityIndicator size="small" color="#fff" />
+//               ) : (
+//                 <Text style={styles.textoboton}>Iniciar Sesión</Text>
+//               )}
+//             </TouchableOpacity>
+//           </View>
+//         ) : (
+//           <>
+//             <Text style={styles.texto}>Seleccione una sede:</Text>
+//             <Picker
+//               selectedValue={sedeSeleccionada}
+//               onValueChange={setSedeSeleccionada}
+//               style={styles.picker}
+//             >
+//               {sedes.map((sede) => (
+//                 <Picker.Item
+//                   key={sede.id}
+//                   label={sede.bod_nombre}
+//                   value={sede.id}
+//                 />
+//               ))}
+//             </Picker>
+//             <View style={styles.PadreBoton}>
+//               <TouchableOpacity
+//                 style={styles.cajaButtonConfirmar}
+//                 onPress={handleConfirmSede}
+//               >
+//                 <Text style={styles.textoboton}>Confirmar</Text>
+//               </TouchableOpacity>
+//             </View>
+//           </>
+//         )}
 
-//         <Text style={{ color: "red", textAlign: "center" }}>
-//           {serialTelefono ? serialTelefono : "Sin rerial"}
+//         {/* boton que me muestre el serial en alerta */}
+//         <Text style={styles.serial}>
+//           {serialTelefono ? serialTelefono : "Sin serial"}
 //         </Text>
 //       </View>
 //     </View>
@@ -193,15 +228,15 @@
 //     backgroundColor: "#F5F5F5",
 //   },
 //   profile: {
-//     width: 200,
-//     height: 200,
+//     width: 150,
+//     height: 100,
 //     resizeMode: "contain",
 //     marginBottom: 10,
 //   },
 //   tarjeta: {
 //     margin: 20,
 //     width: "90%",
-//     height: 400,
+//     height: 300,
 //     backgroundColor: "#fff",
 //     borderRadius: 20,
 //     padding: 20,
@@ -212,11 +247,21 @@
 //     elevation: 5,
 //   },
 //   cajatexto: {
-//     paddingVertical: 20,
-//     backgroundColor: "#cccccc40",
+//     paddingVertical: 7,
+//     backgroundColor: "#f5f5f5",
 //     borderRadius: 20,
 //     marginBottom: 10,
 //     marginVertical: 10,
+//   },
+//   texto: {
+//     paddingHorizontal: 15,
+//     marginBottom: 5,
+//     fontWeight: "bold",
+//   },
+//   picker: {
+//     backgroundColor: "#cccccc40",
+//     borderRadius: 20,
+//     marginBottom: 10,
 //   },
 //   PadreBoton: {
 //     alignItems: "center",
@@ -224,6 +269,15 @@
 //   cajaButton: {
 //     width: 150,
 //     backgroundColor: "#000000",
+//     borderRadius: 20,
+//     paddingVertical: 20,
+//     marginTop: 20,
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   cajaButtonConfirmar: {
+//     width: 150,
+//     backgroundColor: "#f5a21b",
 //     borderRadius: 20,
 //     paddingVertical: 20,
 //     marginTop: 20,
@@ -247,7 +301,27 @@
 //     borderRadius: 5,
 //     elevation: 5,
 //   },
+//   serial: {
+//     color: "red",
+//     textAlign: "center",
+//     marginTop: 10,
+//   },
+//   imagenContainer: {
+//     width: "100%",
+//     alignItems: "center",
+//     marginTop: 1,
+//   },
+//   ultimaImagen: {
+//     width: 100,
+//     height: 150,
+//     resizeMode: "contain",
+//   },
+//   lottie: {
+//     width: 150,
+//     height: 150,
+//   },
 // });
+
 
 import React, { useState, useEffect } from "react";
 import {
@@ -259,10 +333,12 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ImageBackground,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 import { Picker } from "@react-native-picker/picker";
+import LottieView from "lottie-react-native";
 
 export default function Login({ navigation }) {
   const [usuario, setUsuario] = useState("");
@@ -380,6 +456,94 @@ export default function Login({ navigation }) {
   };
 
   return (
+    // <View style={styles.padre}>
+    //   <View style={styles.configuracion}>
+    //     <TouchableOpacity onPress={() => navigation.navigate("ConfigLogin")}>
+    //       <Text style={styles.textoboton}>Configuración</Text>
+    //     </TouchableOpacity>
+    //   </View>
+
+    //   <View style={styles.loadingContainer}>
+    //     <LottieView
+    //       source={require("../assets/de1.json")}
+    //       autoPlay
+    //       loop
+    //       style={styles.lottie}
+    //     />
+    //   </View>
+
+    //   <View style={styles.tarjeta}>
+    //     <View style={styles.cajatexto}>
+    //       <TextInput
+    //         placeholder="Usuario"
+    //         style={{ paddingHorizontal: 15 }}
+    //         value={usuario}
+    //         onChangeText={setUsuario}
+    //         autoCapitalize="none"
+    //       />
+    //     </View>
+
+    //     <View style={styles.cajatexto}>
+    //       <TextInput
+    //         placeholder="Contraseña"
+    //         style={{ paddingHorizontal: 15 }}
+    //         secureTextEntry
+    //         value={password}
+    //         onChangeText={setPassword}
+    //       />
+    //     </View>
+
+    //     {!loginExitoso ? (
+    //       <View style={styles.PadreBoton}>
+    //         <TouchableOpacity
+    //           style={styles.cajaButton}
+    //           onPress={handleLogin}
+    //           disabled={loading}
+    //         >
+    //           {loading ? (
+    //             <ActivityIndicator size="small" color="#fff" />
+    //           ) : (
+    //             <Text style={styles.textoboton}>Iniciar Sesión</Text>
+    //           )}
+    //         </TouchableOpacity>
+    //       </View>
+    //     ) : (
+    //       <>
+    //         <Text style={styles.texto}>Seleccione una sede:</Text>
+    //         <Picker
+    //           selectedValue={sedeSeleccionada}
+    //           onValueChange={setSedeSeleccionada}
+    //           style={styles.picker}
+    //         >
+    //           {sedes.map((sede) => (
+    //             <Picker.Item
+    //               key={sede.id}
+    //               label={sede.bod_nombre}
+    //               value={sede.id}
+    //             />
+    //           ))}
+    //         </Picker>
+    //         <View style={styles.PadreBoton}>
+    //           <TouchableOpacity
+    //             style={styles.cajaButtonConfirmar}
+    //             onPress={handleConfirmSede}
+    //           >
+    //             <Text style={styles.textoboton}>Confirmar</Text>
+    //           </TouchableOpacity>
+    //         </View>
+    //       </>
+    //     )}
+
+    //     {/* imagen de fonto de tarjeta */}
+    //     <Image source={require("../assets/logo.png")} style={styles.profile} />
+
+    //     {/* boton que me muestre el serial en alerta */}
+    //     <Text style={styles.serial}>
+    //       {serialTelefono ? serialTelefono : "Sin serial"}
+    //     </Text>
+    //   </View>
+    // </View>
+
     <View style={styles.padre}>
       <View style={styles.configuracion}>
         <TouchableOpacity onPress={() => navigation.navigate("ConfigLogin")}>
@@ -387,90 +551,304 @@ export default function Login({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* <View style={styles.loadingContainer}>
+      <LottieView
+        source={require("../assets/de1.json")}
+        autoPlay
+        loop
+        style={styles.lottie}
+      />
+    </View> */}
+
       <Image source={require("../assets/image.png")} style={styles.profile} />
 
-      <View style={styles.tarjeta}>
-        <View style={styles.cajatexto}>
-          <TextInput
-            placeholder="Usuario"
-            style={{ paddingHorizontal: 15 }}
-            value={usuario}
-            onChangeText={setUsuario}
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.cajatexto}>
-          <TextInput
-            placeholder="Contraseña"
-            style={{ paddingHorizontal: 15 }}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
-
-        {!loginExitoso ? (
-          <View style={styles.PadreBoton}>
-            <TouchableOpacity
-              style={styles.cajaButton}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.textoboton}>Iniciar Sesión</Text>
-              )}
-            </TouchableOpacity>
+      {/* Cambiamos View por ImageBackground y añadimos la imagen de fondo */}
+      <ImageBackground
+        source={require("../assets/logo.png")} // Asegúrate de tener esta imagen
+        style={styles.tarjeta}
+        imageStyle={styles.backgroundImage}
+      >
+        <View style={styles.contenidoTarjeta}>
+          <View style={styles.cajatexto}>
+            <TextInput
+              placeholder="Usuario"
+              style={styles.input}
+              value={usuario}
+              onChangeText={setUsuario}
+              autoCapitalize="none"
+            />
           </View>
-        ) : (
-          <>
-            <Text style={styles.texto}>Seleccione una sede:</Text>
-            <Picker
-              selectedValue={sedeSeleccionada}
-              onValueChange={setSedeSeleccionada}
-              style={styles.picker}
-            >
-              {sedes.map((sede) => (
-                <Picker.Item
-                  key={sede.id}
-                  label={sede.bod_nombre}
-                  value={sede.id}
-                />
-              ))}
-            </Picker>
+
+          <View style={styles.cajatexto}>
+            <TextInput
+              placeholder="Contraseña"
+              style={styles.input}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+
+          {!loginExitoso ? (
             <View style={styles.PadreBoton}>
               <TouchableOpacity
                 style={styles.cajaButton}
-                onPress={handleConfirmSede}
+                onPress={handleLogin}
+                disabled={loading}
               >
-                <Text style={styles.textoboton}>Confirmar</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.textoboton}>Iniciar Sesión</Text>
+                )}
               </TouchableOpacity>
             </View>
-          </>
-        )}
+          ) : (
+            <>
+              <Text style={styles.texto}>Seleccione una sede:</Text>
+              <Picker
+                selectedValue={sedeSeleccionada}
+                onValueChange={setSedeSeleccionada}
+                style={styles.picker}
+              >
+                {sedes.map((sede) => (
+                  <Picker.Item
+                    key={sede.id}
+                    label={sede.bod_nombre}
+                    value={sede.id}
+                  />
+                ))}
+              </Picker>
+              <View style={styles.PadreBoton}>
+                <TouchableOpacity
+                  style={styles.cajaButtonConfirmar}
+                  onPress={handleConfirmSede}
+                >
+                  <Text style={styles.textoboton}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
-      {/* boton que me muestre el serial en alerta */}
-        {/* <Text style={styles.serial}>
-          {serialTelefono ? serialTelefono : "Sin serial"}
-        </Text>
-
-        <View>
-          <Image
-            source={require("../assets/image.png")}
-            style={styles.profile}
-          />
-        </View> */}
-
-
-        <View style={styles.imagenContainer}>
-          <Image source={require("../assets/logo.png")} style={styles.ultimaImagen} />
+          {/* Texto SEBTHI en la parte inferior */}
+          <Text style={styles.brandText}>SEBTHI</Text>
         </View>
-      </View>
+      </ImageBackground>
+
+      {/* Mostrar serial en la parte inferior de la pantalla */}
+      {/* <Text style={styles.serial}>
+        {serialTelefono ? serialTelefono : "Sin serial"}
+      </Text> */}
     </View>
   );
 }
+
+// const styles = StyleSheet.create({
+//   padre: {
+//     flex: 1,
+//     justifyContent: "center",
+//     alignItems: "center",
+//     backgroundColor: "#F5F5F5",
+//   },
+//   profile: {
+//     width: 150,
+//     height: 100,
+//     resizeMode: "contain",
+//     marginBottom: 10,
+//   },
+//   tarjeta: {
+//     margin: 20,
+//     width: "90%",
+//     height: 300,
+//     backgroundColor: "#fff",
+//     borderRadius: 20,
+//     padding: 20,
+//     shadowColor: "#000",
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.8,
+//     shadowRadius: 2,
+//     elevation: 5,
+//   },
+//   cajatexto: {
+//     paddingVertical: 7,
+//     backgroundColor: "#f5f5f5",
+//     borderRadius: 20,
+//     marginBottom: 10,
+//     marginVertical: 10,
+//   },
+//   texto: {
+//     paddingHorizontal: 15,
+//     marginBottom: 5,
+//     fontWeight: "bold",
+//   },
+//   picker: {
+//     backgroundColor: "#cccccc40",
+//     borderRadius: 20,
+//     marginBottom: 10,
+//   },
+//   PadreBoton: {
+//     alignItems: "center",
+//   },
+//   cajaButton: {
+//     width: 150,
+//     backgroundColor: "#000000",
+//     borderRadius: 20,
+//     paddingVertical: 20,
+//     marginTop: 20,
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   cajaButtonConfirmar: {
+//     width: 150,
+//     backgroundColor: "#f5a21b",
+//     borderRadius: 20,
+//     paddingVertical: 20,
+//     marginTop: 20,
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   textoboton: {
+//     color: "#fff",
+//     fontSize: 18,
+//     fontWeight: "bold",
+//     textAlign: "center",
+//   },
+//   configuracion: {
+//     marginBottom: 20,
+//     position: "absolute",
+//     top: 20,
+//     right: 10,
+//     backgroundColor: "#FFC300",
+//     paddingHorizontal: 10,
+//     paddingVertical: 5,
+//     borderRadius: 5,
+//     elevation: 5,
+//   },
+//   serial: {
+//     color: "red",
+//     textAlign: "center",
+//     marginTop: 10,
+//   },
+//   imagenContainer: {
+//     width: "100%",
+//     alignItems: "center",
+//     marginTop: 1,
+//   },
+//   ultimaImagen: {
+//     width: 100,
+//     height: 150,
+//     resizeMode: "contain",
+//   },
+//   lottie: {
+//     width: 150,
+//     height: 150,
+//   },
+// });
+
+// const styles = StyleSheet.create({
+//   padre: {
+//     flex: 1,
+//     justifyContent: "center",
+//     alignItems: "center",
+//     backgroundColor: "#F5F5F5",
+//   },
+//   profile: {
+//     width: 150,
+//     height: 100,
+//     resizeMode: "contain",
+//     marginBottom: 10,
+//     alignSelf: "center",
+//   },
+//   tarjeta: {
+//     margin: 20,
+//     width: "80%",
+//     backgroundColor: "#fff",
+//     borderRadius: 10,
+//     padding: 20,
+//     shadowColor: "#000",
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.25,
+//     shadowRadius: 3.84,
+//     elevation: 5,
+//     alignItems: "center",
+//   },
+//   cajatexto: {
+//     width: "100%",
+//     paddingVertical: 10,
+//     backgroundColor: "#f5f5f5",
+//     borderRadius: 5,
+//     marginBottom: 15,
+//   },
+//   texto: {
+//     paddingHorizontal: 15,
+//     marginBottom: 5,
+//     fontWeight: "bold",
+//   },
+//   picker: {
+//     backgroundColor: "#cccccc40",
+//     borderRadius: 20,
+//     marginBottom: 10,
+//     width: "100%",
+//   },
+//   PadreBoton: {
+//     width: "100%",
+//     alignItems: "center",
+//     marginTop: 10,
+//   },
+//   cajaButton: {
+//     width: "100%",
+//     backgroundColor: "#000",
+//     borderRadius: 5,
+//     paddingVertical: 12,
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   cajaButtonConfirmar: {
+//     width: "100%",
+//     backgroundColor: "#f5a21b",
+//     borderRadius: 5,
+//     paddingVertical: 12,
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+//   textoboton: {
+//     color: "#fff",
+//     fontSize: 16,
+//     fontWeight: "bold",
+//   },
+//   configuracion: {
+//     marginBottom: 20,
+//     position: "absolute",
+//     top: 20,
+//     right: 10,
+//     backgroundColor: "#FFC300",
+//     paddingHorizontal: 10,
+//     paddingVertical: 5,
+//     borderRadius: 5,
+//     elevation: 5,
+//   },
+//   serial: {
+//     color: "red",
+//     textAlign: "center",
+//     marginTop: 15,
+//     fontSize: 12,
+//   },
+//   loadingContainer: {
+//     position: "absolute",
+//     top: 50,
+//     alignItems: "center",
+//   },
+//   lottie: {
+//     width: 150,
+//     height: 150,
+//   },
+//   brandText: {
+//     marginTop: 20,
+//     fontSize: 18,
+//     fontWeight: "bold",
+//     color: "#333",
+//   },
+// });
 
 const styles = StyleSheet.create({
   padre: {
@@ -480,27 +858,42 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   profile: {
-    width: 200,
-    height: 200,
+    width: 250,
+    height: 250,
     resizeMode: "contain",
     marginBottom: 10,
   },
   tarjeta: {
     margin: 20,
     width: "90%",
-    height: 400,
-    backgroundColor: "#fff",
+    height: 400, // Ajusta según necesites
     borderRadius: 20,
-    padding: 20,
+    overflow: "hidden", // Importante para que la imagen de fondo no se salga
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
-    shadowRadius: 2,
+    shadowRadius: 5,
     elevation: 5,
   },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: "cover",
+    justifyContent: "center",
+    opacity: 0.9, // Hacemos la imagen semi-transparente
+  },
+  contenidoTarjeta: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.8)", // Fondo semi-transparente
+    padding: 20,
+    justifyContent: "center",
+  },
+
+  input: {
+    paddingHorizontal: 15,
+  },
   cajatexto: {
-    paddingVertical: 10,
-    backgroundColor: "#cccccc40",
+    paddingVertical: 7,
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
     marginBottom: 10,
     marginVertical: 10,
@@ -527,11 +920,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  cajaButtonConfirmar: {
+    width: "100%",
+    backgroundColor: "#f5a21b",
+    borderRadius: 20,
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   textoboton: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
   },
   configuracion: {
     marginBottom: 20,
@@ -544,15 +944,29 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     elevation: 5,
   },
-  serial: { color: "red", textAlign: "center", marginTop: 10 },
-  imagenContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 1,
+  serial: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 12,
   },
-  ultimaImagen: {
-    width: 100,
+  loadingContainer: {
+    position: "absolute",
+    top: 50,
+    alignItems: "center",
+  },
+  lottie: {
+    width: 150,
     height: 150,
-    resizeMode: "contain",
+  },
+  brandText: {
+    marginTop: 20,
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
 });

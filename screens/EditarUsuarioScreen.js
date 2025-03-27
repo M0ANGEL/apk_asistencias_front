@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,28 +9,17 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 import LottieView from "lottie-react-native"; // 🔹 Animación de carga
 
-const EnrollScreen = ({ navigation, route }) => {
+const EditarUsuarioScreen = ({ navigation, route }) => {
   const [cedula, setCedula] = useState(route.params?.cedulaPreview || "");
   const [photo, setPhoto] = useState(null);
   const [estadoFoto, setEstadoFoto] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true); // Muestra el modal de instrucciones
-
-  useEffect(() => {
-    if (!photo) {
-      setTimeout(() => {
-        setShowInstructions(false);
-        // takePhoto();
-      }, 5000); // Espera 3 segundos antes de tomar la foto
-    }
-  }, []);
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -54,56 +43,9 @@ const EnrollScreen = ({ navigation, route }) => {
     }
   };
 
-  const validarCedula = async () => {
-    if (!cedula) {
-      Alert.alert("Error", "Por favor, ingresa tu cédula para validar usuario");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      if (!token) {
-        Alert.alert("Error", "No se encontró el token de autenticación.");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("cedula", cedula);
-
-      const response = await fetch(BASE_URL_ASISTENCIAS + "usuarioCedula", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Éxito", result.message); // ✅ Ahora usa result.message correctamente
-      } else {
-        Alert.alert(
-          "Error",
-          result.message || "Hubo un problema al guardar el usuario."
-        );
-      }
-    } catch (error) {
-      Alert.alert("Error", "No se pudo conectar con el servidor.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const saveUser = async () => {
     if (!cedula || !photo) {
-      Alert.alert(
-        "Error",
-        "Por favor, ingresa tu cédula y toma el registro facial."
-      );
+      Alert.alert("Error", "Por favor, ingresa tu cédula y toma el registro facial.");
       return;
     }
 
@@ -127,7 +69,7 @@ const EnrollScreen = ({ navigation, route }) => {
         type: "image/jpeg",
       });
 
-      const response = await fetch(BASE_URL_ASISTENCIAS + "enrolar", {
+      const response = await fetch(BASE_URL_ASISTENCIAS + "editarUsuario", {
         method: "POST",
         body: formData,
         headers: {
@@ -139,7 +81,7 @@ const EnrollScreen = ({ navigation, route }) => {
       const result = await response.json();
 
       if (response.ok) {
-        Alert.alert("Éxito", "Usuario enrolado correctamente.");
+        Alert.alert("Éxito", "Usuario actualizado correctamente.");
         setCedula("");
         setPhoto(null);
       } else {
@@ -148,21 +90,21 @@ const EnrollScreen = ({ navigation, route }) => {
             "Usuario ya registrado",
             "Este usuario ya ha sido enrolado anteriormente."
           );
-          // } else if (result.error === "Persona no encontrada") {
-          //   Alert.alert(
-          //     "Persona no encontrada",
-          //     "El usuario no existe. ¿Deseas crearlo?",
-          //     [
-          //       {
-          //         text: "No",
-          //         style: "cancel",
-          //       },
-          //       {
-          //         text: "Sí",
-          //         onPress: () => navigation.navigate("RegistroUsuarioNuevo"),
-          //       },
-          //     ]
-          //   );
+        } else if (result.error === "Persona no encontrada") {
+          Alert.alert(
+            "Persona no encontrada",
+            "El usuario no existe. ¿Deseas crearlo?",
+            [
+              {
+                text: "No",
+                style: "cancel",
+              },
+              {
+                text: "Sí",
+                onPress: () => navigation.navigate("Enrolar"),
+              },
+            ]
+          );
         } else {
           Alert.alert(
             "Error",
@@ -207,16 +149,6 @@ const EnrollScreen = ({ navigation, route }) => {
 
           <View style={styles.PadreBoton}>
             <TouchableOpacity
-              style={styles.cajaButtonValidarCedula}
-              onPress={validarCedula}
-              disabled={loading}
-            >
-              <Text style={styles.textoboton}>Validar cedula</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.PadreBoton}>
-            <TouchableOpacity
               style={[styles.cajaButton, photo && styles.cajaButtonFotoTomada]}
               onPress={takePhoto}
               disabled={loading}
@@ -225,7 +157,7 @@ const EnrollScreen = ({ navigation, route }) => {
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={styles.textoboton}>
-                  {photo ? "Registro Facial Guardada" : "Registro Facial"}
+                  {photo ? "Registro Facial Nuevo Guardada" : "Nuevo Registro Facial"}
                 </Text>
               )}
             </TouchableOpacity>
@@ -240,32 +172,12 @@ const EnrollScreen = ({ navigation, route }) => {
               {loading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.textoboton}>Crear Usuario</Text>
+                <Text style={styles.textoboton}>Actualizar Usuario</Text>
               )}
             </TouchableOpacity>
           </View>
         </>
       )}
-
-      {/* Modal con instrucciones antes de tomar la foto */}
-      <Modal visible={showInstructions} transparent animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <LottieView
-              source={require("../assets/camera-guide.json")} // 🔹 Animación de guía para foto
-              autoPlay
-              loop
-              style={styles.lottie}
-            />
-            <Text style={styles.modalText}>Asegúrate de:</Text>
-            <Text style={styles.modalList}>
-              📸 Acercar tu rostro a la cámara
-            </Text>
-            <Text style={styles.modalList}>🧢 No usar gorra o sombrero</Text>
-            <Text style={styles.modalList}>💡 Buena iluminación</Text>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -315,15 +227,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cajaButtonValidarCedula: {
-    width: 200,
-    backgroundColor: "#f5a21b",
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginTop: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   cajaButtonCrear: {
     width: 200,
     backgroundColor: "#0a2da8",
@@ -357,27 +260,6 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    alignItems: "center",
-  },
-  modalText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalList: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
 });
 
-export default EnrollScreen;
+export default EditarUsuarioScreen;

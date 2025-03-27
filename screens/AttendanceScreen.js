@@ -1,171 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   Alert,
-//   StyleSheet,
-//   Image,
-//   TouchableOpacity,
-//   ActivityIndicator,
-// } from "react-native";
-// import * as ImagePicker from "expo-image-picker";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { BASE_URL_ASISTENCIAS } from "../services/api";
-
-// const AttendanceScreen = ({ navigation }) => {
-//   const [photo, setPhoto] = useState(null);
-//   const [loading, setLoading] = useState(false);
-
-//   const takePhoto = async () => {
-//     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-//     if (status !== "granted") {
-//       Alert.alert(
-//         "Permiso denegado",
-//         "Necesitas permitir el acceso a la cámara para tomar una foto."
-//       );
-//       return;
-//     }
-
-//     const result = await ImagePicker.launchCameraAsync({
-//       allowsEditing: false,
-//       aspect: [4, 3],
-//       quality: 1,
-//       cameraType: ImagePicker.CameraType.front, // Cámara frontal
-//     });
-
-//     if (!result.canceled && result.assets?.length > 0) {
-//       const photoUri = result.assets[0].uri;
-//       setPhoto(photoUri);
-//       validateAttendance(photoUri); // 🔹 Llamar a la validación automáticamente
-//     }
-//   };
-
-//   const validateAttendance = async (photoUri) => {
-//     if (!photoUri) {
-//       Alert.alert("Error", "No se ha tomado una foto.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     const serialGuardado = await AsyncStorage.getItem("serialTelefono");
-
-//     const formData = new FormData();
-//     formData.append("serial", serialGuardado);
-//     formData.append("foto", {
-//       uri: photoUri,
-//       type: "image/jpeg",
-//       name: "photo.jpg",
-//     });
-
-//     try {
-//       const token = await AsyncStorage.getItem("token");
-
-//       const response = await fetch(BASE_URL_ASISTENCIAS + "validarfoto2", {
-//         method: "POST",
-//         body: formData,
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
-
-//       const data = await response.json();
-
-//       if (data.enrolar) {
-//         Alert.alert(
-//           "Usuario no enrolado",
-//           "¿Quieres enrolarte?",
-//           [
-//             { text: "No", style: "cancel" },
-//             {
-//               text: "Sí",
-//               onPress: () => {
-//                 navigation.navigate("Enrolar");
-//               },
-//             },
-//           ],
-//           { cancelable: false }
-//         );
-//       } else if (data.success) {
-//         setPhoto(null);
-//         Alert.alert("Éxito", " 😁 Asistencia registrada correctamente.");
-//       } else {
-//         Alert.alert(
-//           "Error",
-//           data.message || "🫤 La foto no coincide con el usuario registrado."
-//         );
-//       }
-//     } catch (error) {
-//       Alert.alert("Error", "Hubo un problema al validar la asistencia.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <View style={styles.padre}>
-//       <View>
-//         <Image source={require("../assets/logo.png")} style={styles.profile} />
-//       </View>
-
-//       <View style={styles.PadreBoton}>
-//         <TouchableOpacity
-//           style={[styles.cajaButton, photo && styles.cajaButtonFotoTomada]}
-//           onPress={takePhoto}
-//           disabled={loading}
-//         >
-//           {loading ? (
-//             <ActivityIndicator size="small" color="#fff" />
-//           ) : (
-//             <Text style={styles.textoboton}>
-//               {photo ? "Foto Guardada" : "Tomar Foto"}
-//             </Text>
-//           )}
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   padre: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#F5F5F5",
-//   },
-//   profile: {
-//     width: 200,
-//     height: 200,
-//     resizeMode: "contain",
-//     marginBottom: 10,
-//   },
-//   PadreBoton: {
-//     alignItems: "center",
-//   },
-//   cajaButton: {
-//     width: 200,
-//     backgroundColor: "#000000",
-//     borderRadius: 20,
-//     paddingVertical: 20,
-//     marginTop: 20,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   textoboton: {
-//     color: "#fff",
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     textAlign: "center",
-//   },
-//   cajaButtonFotoTomada: {
-//     backgroundColor: "#28a745", // Verde cuando la foto ha sido tomada
-//   },
-// });
-
-// export default AttendanceScreen;
-
-//----------------------------------------------------------------
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -174,18 +6,25 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import LottieView from "lottie-react-native"; // 🔹 Animación de carga
+import LottieView from "lottie-react-native";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 
 const AttendanceScreen = ({ navigation }) => {
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true); // Muestra el modal de instrucciones
 
   useEffect(() => {
-    takePhoto(); // 🔹 Tomar la foto automáticamente al cargar la pantalla
+    if (!photo) {
+      setTimeout(() => {
+        setShowInstructions(false);
+        takePhoto();
+      }, 5000); // Espera 3 segundos antes de tomar la foto
+    }
   }, []);
 
   const takePhoto = async () => {
@@ -202,13 +41,13 @@ const AttendanceScreen = ({ navigation }) => {
       allowsEditing: false,
       aspect: [4, 3],
       quality: 1,
-      cameraType: ImagePicker.CameraType.front, // Cámara frontal
+      cameraType: ImagePicker.CameraType.front,
     });
 
     if (!result.canceled && result.assets?.length > 0) {
       const photoUri = result.assets[0].uri;
       setPhoto(photoUri);
-      validateAttendance(photoUri); // 🔹 Validar asistencia automáticamente
+      validateAttendance(photoUri);
     }
   };
 
@@ -242,25 +81,12 @@ const AttendanceScreen = ({ navigation }) => {
       });
 
       const data = await response.json();
-
-      if (data.enrolar) {
-        Alert.alert(
-          "Usuario no enrolado",
-          "¿Quieres enrolarte?",
-          [
-            { text: "No", style: "cancel" },
-            {
-              text: "Sí",
-              onPress: () => {
-                navigation.navigate("Enrolar");
-              },
-            },
-          ],
-          { cancelable: false }
-        );
-      } else if (data.success) {
+      if (data.success) {
         setPhoto(null);
-        Alert.alert("Éxito", "😁 Asistencia registrada correctamente.");
+        Alert.alert("Éxito", data.message);
+      } else if (data.error === "Persona  deshabilitada") {
+        Alert.alert("Error", data.message || "No se pudo validar la asistencia, usuario inactivo");
+      
       } else {
         Alert.alert(
           "Error",
@@ -280,21 +106,39 @@ const AttendanceScreen = ({ navigation }) => {
 
       {loading ? (
         <LottieView
-          source={require("../assets/loading.json")} // 🔹 Agrega un archivo Lottie de animación
+          source={require("../assets/loading.json")}
           autoPlay
           loop
           style={styles.lottie}
         />
       ) : (
         <TouchableOpacity
-          style={[styles.cajaButton, photo && styles.cajaButtonFotoTomada]}
+          style={styles.cajaButton}
           onPress={takePhoto}
         >
           <Text style={styles.textoboton}>
-            {photo ? "Foto Guardada" : "Tomar Foto"}
+             Registrar nueva asistencia
           </Text>
         </TouchableOpacity>
       )}
+
+      {/* Modal con instrucciones antes de tomar la foto */}
+      <Modal visible={showInstructions} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <LottieView
+              source={require("../assets/camera-guide.json")} // 🔹 Animación de guía para foto
+              autoPlay
+              loop
+              style={styles.lottie}
+            />
+            <Text style={styles.modalText}>Asegúrate de:</Text>
+            <Text style={styles.modalList}>📸 Acercar tu rostro a la cámara</Text>
+            <Text style={styles.modalList}>🧢 No usar gorra o sombrero</Text>
+            <Text style={styles.modalList}>💡 Buena iluminación</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -314,7 +158,7 @@ const styles = StyleSheet.create({
   },
   cajaButton: {
     width: 200,
-    backgroundColor: "#000000",
+    backgroundColor: "#28a745",
     borderRadius: 20,
     paddingVertical: 20,
     marginTop: 20,
@@ -327,12 +171,30 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  cajaButtonFotoTomada: {
-    backgroundColor: "#28a745", // Verde cuando la foto ha sido tomada
-  },
   lottie: {
     width: 150,
     height: 150,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalList: {
+    fontSize: 16,
+    marginBottom: 5,
   },
 });
 

@@ -1,4 +1,6 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
+import { View, Image, StyleSheet } from "react-native";
+import LottieView from "lottie-react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
@@ -7,14 +9,40 @@ import ConfigLoginScreen from "./screens/ConfigLoginScreen";
 import ConfigScreen from "./screens/ConfigScreen";
 import EnrollScreen from "./screens/EnrollScreen";
 import AttendanceScreen from "./screens/AttendanceScreen";
-import { StyleSheet } from "react-native";
 import UsuariosNoSebthi from "./screens/UsuariosNoSebthi";
 import MenuConfigScreen from "./screens/MenuConfig";
 import SedeRegistro from "./screens/SedeRegistro";
+import EditarUsuarioScreen from "./screens/EditarUsuarioScreen";
 
 const Stack = createStackNavigator();
 
-const App = () => {
+export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // ⏳ Mostrar la animación por 3 segundos
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        {/* 🔹 Imagen arriba */}
+        <Image source={require("./assets/logo.png")} style={styles.logo} />
+        
+        {/* 🔹 Animación abajo */}
+        <LottieView
+          source={require("./assets/loadingInicio.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
@@ -22,7 +50,7 @@ const App = () => {
           name="Login"
           component={LoginScreen}
           options={{
-            title: "Registro de Asistencias FARMART",
+            title: "Login",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
@@ -92,17 +120,17 @@ const App = () => {
           name="RegistroUsuario"
           component={AttendanceScreen}
           options={{
-            title: "REGISTRO DE ASISTENCIAS",
+            title: "Registro de Asistencias",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
           }}
         />
         <Stack.Screen
-          name="RegistroUsuarioNuevo"
-          component={UsuariosNoSebthi}
+          name="EditarUsuario"
+          component={EditarUsuarioScreen}
           options={{
-            title: "Registro de Asistencias FARMART",
+            title: "Editar Registro Facial",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
@@ -111,15 +139,23 @@ const App = () => {
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  logo: {
+    width: 200, // Ajusta el tamaño del logo
+    height: 200,
+    marginBottom: 20, // Espacio entre la imagen y la animación
+  },
+  lottie: {
+    width: 150,
+    height: 150,
   },
 });
 
-export default App;
