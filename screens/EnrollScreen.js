@@ -43,49 +43,6 @@ const EnrollScreen = ({ navigation, route }) => {
     }
   };
 
-  // const saveUser = async () => {
-  //   if (!cedula || !photo) {
-  //     Alert.alert('Error', 'Por favor, ingresa tu cédula y toma una foto.');
-  //     return;
-  //   }
-
-  //   try {
-  //     const token = await AsyncStorage.getItem('token'); // Obtener el token guardado
-  //     if (!token) {
-  //       Alert.alert('Error', 'No se encontró el token de autenticación.');
-  //       return;
-  //     }
-
-  //     const formData = new FormData();
-  //     formData.append('cedula', cedula);
-  //     formData.append('photo', {
-  //       uri: photo,
-  //       name: `${cedula}.jpg`,
-  //       type: 'image/jpeg',
-  //     });
-
-  //     const response = await fetch('http://192.168.116.114/backend-marcacion/public/api/enrolar', {
-  //       method: 'POST',
-  //       body: formData,
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data',
-  //         'Authorization': `Bearer ${token}`, // Se envía el token en los headers
-  //       },
-  //     });
-
-  //     const result = await response.json();
-  //     if (response.ok) {
-  //       Alert.alert('Éxito', 'Usuario enrolado correctamente.');
-  //       setCedula('');
-  //       setPhoto(null);
-  //     } else {
-  //       Alert.alert('Error', result.message || 'Hubo un problema al guardar el usuario.');
-  //     }
-  //   } catch (error) {
-  //     Alert.alert('Error', 'No se pudo conectar con el servidor.');
-  //   }
-  // };
-
   const saveUser = async () => {
     if (!cedula || !photo) {
       Alert.alert("Error", "Por favor, ingresa tu cédula y toma una foto.");
@@ -206,20 +163,6 @@ const EnrollScreen = ({ navigation, route }) => {
           )}
         </TouchableOpacity>
       </View>
-
-      {/* <View style={styles.PadreBoton}>
-        <TouchableOpacity
-          style={styles.cajaButton}
-          onPress={() => navigation.navigate("RegistroUsuario")}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.textoboton}>Marcar Asistencia</Text>
-          )}
-        </TouchableOpacity>
-      </View> */}
     </View>
   );
 };

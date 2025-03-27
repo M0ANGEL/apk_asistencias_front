@@ -372,7 +372,10 @@ export default function Login({ navigation }) {
     // Guardar solo la información de la sede seleccionada
     await AsyncStorage.setItem("sedeInfo", JSON.stringify(sedeInfo));
 
-    Alert.alert("Sede confirmada.","Se confirmo la sede con la cual se valida la ubicacion para poder  registrar asistencias");
+    Alert.alert(
+      "Sede confirmada.",
+      "Se confirmo la sede con la cual se valida la ubicacion para poder  registrar asistencias"
+    );
     navigation.replace("Home");
   };
 
@@ -384,7 +387,7 @@ export default function Login({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <Image source={require("../assets/logo.png")} style={styles.profile} />
+      <Image source={require("../assets/image.png")} style={styles.profile} />
 
       <View style={styles.tarjeta}>
         <View style={styles.cajatexto}>
@@ -448,9 +451,22 @@ export default function Login({ navigation }) {
           </>
         )}
 
-        <Text style={styles.serial}>
+      {/* boton que me muestre el serial en alerta */}
+        {/* <Text style={styles.serial}>
           {serialTelefono ? serialTelefono : "Sin serial"}
         </Text>
+
+        <View>
+          <Image
+            source={require("../assets/image.png")}
+            style={styles.profile}
+          />
+        </View> */}
+
+
+        <View style={styles.imagenContainer}>
+          <Image source={require("../assets/logo.png")} style={styles.ultimaImagen} />
+        </View>
       </View>
     </View>
   );
@@ -498,7 +514,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#cccccc40",
     borderRadius: 20,
     marginBottom: 10,
-    
   },
   PadreBoton: {
     alignItems: "center",
@@ -530,4 +545,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   serial: { color: "red", textAlign: "center", marginTop: 10 },
+  imagenContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 1,
+  },
+  ultimaImagen: {
+    width: 100,
+    height: 150,
+    resizeMode: "contain",
+  },
 });

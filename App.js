@@ -92,7 +92,7 @@ const App = () => {
           name="RegistroUsuario"
           component={AttendanceScreen}
           options={{
-            title: "Registro de Asistencias",
+            title: "REGISTRO DE ASISTENCIAS",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
