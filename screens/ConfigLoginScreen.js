@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   tarjeta: {
     margin: 20,
     width: "90%",
-    height: 400,
+    height: 300,
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 20,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   cajatexto: {
-    paddingVertical: 20,
+    paddingVertical: 10,
     backgroundColor: "#cccccc40",
     borderRadius: 20,
     marginBottom: 10,

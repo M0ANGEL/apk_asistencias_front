@@ -23,7 +23,7 @@ const AttendanceScreen = ({ navigation }) => {
       setTimeout(() => {
         setShowInstructions(false);
         takePhoto();
-      }, 5000); // Espera 3 segundos antes de tomar la foto
+      }, 7600); // Espera 3 segundos antes de tomar la foto
     }
   }, []);
 

@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from "react";
 // import {
 //   Text,
@@ -150,25 +149,31 @@
 //       </View>
 
 //       <View style={styles.tarjeta}>
-//         <View style={styles.cajatexto}>
-//           <TextInput
-//             placeholder="Usuario"
-//             style={{ paddingHorizontal: 15 }}
-//             value={usuario}
-//             onChangeText={setUsuario}
-//             autoCapitalize="none"
-//           />
-//         </View>
+//         {!loginExitoso ? (
+//           <>
+//             <View style={styles.cajatexto}>
+//               <TextInput
+//                 placeholder="Usuario"
+//                 style={{ paddingHorizontal: 15 }}
+//                 value={usuario}
+//                 onChangeText={setUsuario}
+//                 autoCapitalize="none"
+//               />
+//             </View>
 
-//         <View style={styles.cajatexto}>
-//           <TextInput
-//             placeholder="Contraseña"
-//             style={{ paddingHorizontal: 15 }}
-//             secureTextEntry
-//             value={password}
-//             onChangeText={setPassword}
-//           />
-//         </View>
+//             <View style={styles.cajatexto}>
+//               <TextInput
+//                 placeholder="Contraseña"
+//                 style={{ paddingHorizontal: 15 }}
+//                 secureTextEntry
+//                 value={password}
+//                 onChangeText={setPassword}
+//               />
+//             </View>
+//           </>
+//         ) : (
+//           ""
+//         )}
 
 //         {!loginExitoso ? (
 //           <View style={styles.PadreBoton}>
@@ -261,7 +266,8 @@
 //   picker: {
 //     backgroundColor: "#cccccc40",
 //     borderRadius: 20,
-//     marginBottom: 10,
+//     marginBottom: 30,
+//     marginTop: 40,
 //   },
 //   PadreBoton: {
 //     alignItems: "center",
@@ -322,7 +328,6 @@
 //   },
 // });
 
-
 import React, { useState, useEffect } from "react";
 import {
   Text,
@@ -339,6 +344,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 import { Picker } from "@react-native-picker/picker";
 import LottieView from "lottie-react-native";
+
 
 export default function Login({ navigation }) {
   const [usuario, setUsuario] = useState("");
@@ -456,115 +462,18 @@ export default function Login({ navigation }) {
   };
 
   return (
-    // <View style={styles.padre}>
-    //   <View style={styles.configuracion}>
-    //     <TouchableOpacity onPress={() => navigation.navigate("ConfigLogin")}>
-    //       <Text style={styles.textoboton}>Configuración</Text>
-    //     </TouchableOpacity>
-    //   </View>
-
-    //   <View style={styles.loadingContainer}>
-    //     <LottieView
-    //       source={require("../assets/de1.json")}
-    //       autoPlay
-    //       loop
-    //       style={styles.lottie}
-    //     />
-    //   </View>
-
-    //   <View style={styles.tarjeta}>
-    //     <View style={styles.cajatexto}>
-    //       <TextInput
-    //         placeholder="Usuario"
-    //         style={{ paddingHorizontal: 15 }}
-    //         value={usuario}
-    //         onChangeText={setUsuario}
-    //         autoCapitalize="none"
-    //       />
-    //     </View>
-
-    //     <View style={styles.cajatexto}>
-    //       <TextInput
-    //         placeholder="Contraseña"
-    //         style={{ paddingHorizontal: 15 }}
-    //         secureTextEntry
-    //         value={password}
-    //         onChangeText={setPassword}
-    //       />
-    //     </View>
-
-    //     {!loginExitoso ? (
-    //       <View style={styles.PadreBoton}>
-    //         <TouchableOpacity
-    //           style={styles.cajaButton}
-    //           onPress={handleLogin}
-    //           disabled={loading}
-    //         >
-    //           {loading ? (
-    //             <ActivityIndicator size="small" color="#fff" />
-    //           ) : (
-    //             <Text style={styles.textoboton}>Iniciar Sesión</Text>
-    //           )}
-    //         </TouchableOpacity>
-    //       </View>
-    //     ) : (
-    //       <>
-    //         <Text style={styles.texto}>Seleccione una sede:</Text>
-    //         <Picker
-    //           selectedValue={sedeSeleccionada}
-    //           onValueChange={setSedeSeleccionada}
-    //           style={styles.picker}
-    //         >
-    //           {sedes.map((sede) => (
-    //             <Picker.Item
-    //               key={sede.id}
-    //               label={sede.bod_nombre}
-    //               value={sede.id}
-    //             />
-    //           ))}
-    //         </Picker>
-    //         <View style={styles.PadreBoton}>
-    //           <TouchableOpacity
-    //             style={styles.cajaButtonConfirmar}
-    //             onPress={handleConfirmSede}
-    //           >
-    //             <Text style={styles.textoboton}>Confirmar</Text>
-    //           </TouchableOpacity>
-    //         </View>
-    //       </>
-    //     )}
-
-    //     {/* imagen de fonto de tarjeta */}
-    //     <Image source={require("../assets/logo.png")} style={styles.profile} />
-
-    //     {/* boton que me muestre el serial en alerta */}
-    //     <Text style={styles.serial}>
-    //       {serialTelefono ? serialTelefono : "Sin serial"}
-    //     </Text>
-    //   </View>
-    // </View>
-
     <View style={styles.padre}>
       <View style={styles.configuracion}>
         <TouchableOpacity onPress={() => navigation.navigate("ConfigLogin")}>
-          <Text style={styles.textoboton}>Configuración</Text>
+          <Text style={styles.textoboton}>CONFIG</Text>
         </TouchableOpacity>
       </View>
-
-      {/* <View style={styles.loadingContainer}>
-      <LottieView
-        source={require("../assets/de1.json")}
-        autoPlay
-        loop
-        style={styles.lottie}
-      />
-    </View> */}
 
       <Image source={require("../assets/image.png")} style={styles.profile} />
 
       {/* Cambiamos View por ImageBackground y añadimos la imagen de fondo */}
       <ImageBackground
-        source={require("../assets/logo.png")} // Asegúrate de tener esta imagen
+        source={require("../assets/LOGO-sebthi-sin-fondo.png")} // Asegúrate de tener esta imagen
         style={styles.tarjeta}
         imageStyle={styles.backgroundImage}
       >
@@ -634,221 +543,9 @@ export default function Login({ navigation }) {
           <Text style={styles.brandText}>SEBTHI</Text>
         </View>
       </ImageBackground>
-
-      {/* Mostrar serial en la parte inferior de la pantalla */}
-      {/* <Text style={styles.serial}>
-        {serialTelefono ? serialTelefono : "Sin serial"}
-      </Text> */}
     </View>
   );
 }
-
-// const styles = StyleSheet.create({
-//   padre: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#F5F5F5",
-//   },
-//   profile: {
-//     width: 150,
-//     height: 100,
-//     resizeMode: "contain",
-//     marginBottom: 10,
-//   },
-//   tarjeta: {
-//     margin: 20,
-//     width: "90%",
-//     height: 300,
-//     backgroundColor: "#fff",
-//     borderRadius: 20,
-//     padding: 20,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.8,
-//     shadowRadius: 2,
-//     elevation: 5,
-//   },
-//   cajatexto: {
-//     paddingVertical: 7,
-//     backgroundColor: "#f5f5f5",
-//     borderRadius: 20,
-//     marginBottom: 10,
-//     marginVertical: 10,
-//   },
-//   texto: {
-//     paddingHorizontal: 15,
-//     marginBottom: 5,
-//     fontWeight: "bold",
-//   },
-//   picker: {
-//     backgroundColor: "#cccccc40",
-//     borderRadius: 20,
-//     marginBottom: 10,
-//   },
-//   PadreBoton: {
-//     alignItems: "center",
-//   },
-//   cajaButton: {
-//     width: 150,
-//     backgroundColor: "#000000",
-//     borderRadius: 20,
-//     paddingVertical: 20,
-//     marginTop: 20,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   cajaButtonConfirmar: {
-//     width: 150,
-//     backgroundColor: "#f5a21b",
-//     borderRadius: 20,
-//     paddingVertical: 20,
-//     marginTop: 20,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   textoboton: {
-//     color: "#fff",
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     textAlign: "center",
-//   },
-//   configuracion: {
-//     marginBottom: 20,
-//     position: "absolute",
-//     top: 20,
-//     right: 10,
-//     backgroundColor: "#FFC300",
-//     paddingHorizontal: 10,
-//     paddingVertical: 5,
-//     borderRadius: 5,
-//     elevation: 5,
-//   },
-//   serial: {
-//     color: "red",
-//     textAlign: "center",
-//     marginTop: 10,
-//   },
-//   imagenContainer: {
-//     width: "100%",
-//     alignItems: "center",
-//     marginTop: 1,
-//   },
-//   ultimaImagen: {
-//     width: 100,
-//     height: 150,
-//     resizeMode: "contain",
-//   },
-//   lottie: {
-//     width: 150,
-//     height: 150,
-//   },
-// });
-
-// const styles = StyleSheet.create({
-//   padre: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#F5F5F5",
-//   },
-//   profile: {
-//     width: 150,
-//     height: 100,
-//     resizeMode: "contain",
-//     marginBottom: 10,
-//     alignSelf: "center",
-//   },
-//   tarjeta: {
-//     margin: 20,
-//     width: "80%",
-//     backgroundColor: "#fff",
-//     borderRadius: 10,
-//     padding: 20,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//     elevation: 5,
-//     alignItems: "center",
-//   },
-//   cajatexto: {
-//     width: "100%",
-//     paddingVertical: 10,
-//     backgroundColor: "#f5f5f5",
-//     borderRadius: 5,
-//     marginBottom: 15,
-//   },
-//   texto: {
-//     paddingHorizontal: 15,
-//     marginBottom: 5,
-//     fontWeight: "bold",
-//   },
-//   picker: {
-//     backgroundColor: "#cccccc40",
-//     borderRadius: 20,
-//     marginBottom: 10,
-//     width: "100%",
-//   },
-//   PadreBoton: {
-//     width: "100%",
-//     alignItems: "center",
-//     marginTop: 10,
-//   },
-//   cajaButton: {
-//     width: "100%",
-//     backgroundColor: "#000",
-//     borderRadius: 5,
-//     paddingVertical: 12,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   cajaButtonConfirmar: {
-//     width: "100%",
-//     backgroundColor: "#f5a21b",
-//     borderRadius: 5,
-//     paddingVertical: 12,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   textoboton: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontWeight: "bold",
-//   },
-//   configuracion: {
-//     marginBottom: 20,
-//     position: "absolute",
-//     top: 20,
-//     right: 10,
-//     backgroundColor: "#FFC300",
-//     paddingHorizontal: 10,
-//     paddingVertical: 5,
-//     borderRadius: 5,
-//     elevation: 5,
-//   },
-//   serial: {
-//     color: "red",
-//     textAlign: "center",
-//     marginTop: 15,
-//     fontSize: 12,
-//   },
-//   loadingContainer: {
-//     position: "absolute",
-//     top: 50,
-//     alignItems: "center",
-//   },
-//   lottie: {
-//     width: 150,
-//     height: 150,
-//   },
-//   brandText: {
-//     marginTop: 20,
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     color: "#333",
-//   },
-// });
 
 const styles = StyleSheet.create({
   padre: {
@@ -858,8 +555,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   profile: {
-    width: 250,
-    height: 250,
+    width: 210,
+    height: 210,
     resizeMode: "contain",
     marginBottom: 10,
   },
@@ -874,12 +571,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 5,
     elevation: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.8)", // Fondo semi-transparente
   },
   backgroundImage: {
     flex: 1,
     resizeMode: "cover",
     justifyContent: "center",
-    opacity: 0.9, // Hacemos la imagen semi-transparente
+    opacity: 1,
+    margin: 90,
+    width: 230,
+    height: 230,
+    alignSelf: "center",
   },
   contenidoTarjeta: {
     flex: 1,
@@ -892,7 +594,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   cajatexto: {
-    paddingVertical: 7,
+    paddingVertical: 15,
     backgroundColor: "#f5f5f5",
     borderRadius: 20,
     marginBottom: 10,
@@ -938,10 +640,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 20,
     right: 10,
-    backgroundColor: "#FFC300",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    backgroundColor: "#f5a21b",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 15,
     elevation: 5,
   },
   serial: {
@@ -958,12 +660,13 @@ const styles = StyleSheet.create({
   lottie: {
     width: 150,
     height: 150,
+    
   },
   brandText: {
     marginTop: 20,
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: "#f1c840",
     textAlign: "center",
     textShadowColor: "rgba(0, 0, 0, 0.2)",
     textShadowOffset: { width: 1, height: 1 },

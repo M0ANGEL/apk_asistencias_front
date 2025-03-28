@@ -27,8 +27,7 @@ const EnrollScreen = ({ navigation, route }) => {
     if (!photo) {
       setTimeout(() => {
         setShowInstructions(false);
-        // takePhoto();
-      }, 5000); // Espera 3 segundos antes de tomar la foto
+      }, 7600); // Espera 7 segundos antes de tomar la foto
     }
   }, []);
 
@@ -148,21 +147,6 @@ const EnrollScreen = ({ navigation, route }) => {
             "Usuario ya registrado",
             "Este usuario ya ha sido enrolado anteriormente."
           );
-          // } else if (result.error === "Persona no encontrada") {
-          //   Alert.alert(
-          //     "Persona no encontrada",
-          //     "El usuario no existe. ¿Deseas crearlo?",
-          //     [
-          //       {
-          //         text: "No",
-          //         style: "cancel",
-          //       },
-          //       {
-          //         text: "Sí",
-          //         onPress: () => navigation.navigate("RegistroUsuarioNuevo"),
-          //       },
-          //     ]
-          //   );
         } else {
           Alert.alert(
             "Error",
@@ -258,9 +242,8 @@ const EnrollScreen = ({ navigation, route }) => {
               style={styles.lottie}
             />
             <Text style={styles.modalText}>Asegúrate de:</Text>
-            <Text style={styles.modalList}>
-              📸 Acercar tu rostro a la cámara
-            </Text>
+            <Text style={styles.modalList}>📸 Acercar tu rostro a la cámara</Text>
+            <Text style={styles.modalList}>🙎‍♂️🙎 Debes haber una sola persona</Text>
             <Text style={styles.modalList}>🧢 No usar gorra o sombrero</Text>
             <Text style={styles.modalList}>💡 Buena iluminación</Text>
           </View>
