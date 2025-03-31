@@ -61,6 +61,14 @@ const MenuConfigScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.PadreBoton}>
+          <TouchableOpacity
+            style={styles.cajaButtonEdit}
+            onPress={() => navigation.navigate("EditarUsuario")}
+          >
+            <Text style={styles.textoboton}>Editar Registros Facial</Text>
+          </TouchableOpacity>
+        </View>
 
         {serialRegistrado ? (
           <View style={styles.PadreBoton}>
@@ -89,6 +97,15 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     marginBottom: 10,
   },
+  cajaButtonEdit: {
+    width: 300,
+    backgroundColor: "#f5a21b",
+    borderRadius: 20,
+    paddingVertical: 20,
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   tarjeta: {
     margin: 20,
     width: "90%",
@@ -111,8 +128,8 @@ const styles = StyleSheet.create({
   },
   PadreBoton: {
     alignItems: "center",
-  },  
-  
+  },
+
   cajaButton: {
     width: 300,
     backgroundColor: "#000000",
