@@ -110,7 +110,7 @@ export default function App() {
           name="Enrolar"
           component={EnrollScreen}
           options={{
-            title: "Enrollar usuario",
+            title: "Enrolar usuario",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },
