@@ -45,7 +45,7 @@ const MenuConfigScreen = ({ navigation }) => {
           <View style={styles.PadreBoton}>
             <TouchableOpacity
               style={[styles.cajaButton, { backgroundColor: "black" }]}
-              onPress={() => navigation.navigate("Config")}
+              onPress={() => navigation.replace("Config")}
             >
               <Text style={styles.textoboton}>Registrar Teléfono a sede</Text>
             </TouchableOpacity>
@@ -55,7 +55,7 @@ const MenuConfigScreen = ({ navigation }) => {
         <View style={styles.PadreBoton}>
           <TouchableOpacity
             style={styles.cajaButton}
-            onPress={() => navigation.navigate("CrearSede")}
+            onPress={() => navigation.replace("CrearSede")}
           >
             <Text style={styles.textoboton}>Registrar Sede con Teléfono</Text>
           </TouchableOpacity>
