@@ -336,7 +336,6 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ImageBackground,
 } from "react-native";
@@ -344,7 +343,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL_ASISTENCIAS } from "../services/api";
 import { Picker } from "@react-native-picker/picker";
 import LottieView from "lottie-react-native";
-
+import { Alert, Linking } from "react-native";
+import * as Application from "expo-application";
 
 export default function Login({ navigation }) {
   const [usuario, setUsuario] = useState("");
@@ -354,6 +354,40 @@ export default function Login({ navigation }) {
   const [sedes, setSedes] = useState([]);
   const [sedeSeleccionada, setSedeSeleccionada] = useState("");
   const [loginExitoso, setLoginExitoso] = useState(false); // Nuevo estado
+
+  const [nuevaVersion, setNuevaVersion] = useState(null);
+  const [apkUrl, setApkUrl] = useState("");
+
+  useEffect(() => {
+    const verificarActualizacion = async () => {
+      try {
+        const response = await fetch(BASE_URL_ASISTENCIAS + "Appupdate");
+        const data = await response.json();
+
+        const versionLocal = Application.nativeApplicationVersion;
+        console.log(
+          `Versión actual: ${versionLocal}, Nueva versión: ${data.latest_version}`
+        );
+
+        if (data.latest_version !== versionLocal) {
+          setNuevaVersion(data.latest_version);
+          setApkUrl(data.download_url);
+        }
+      } catch (error) {
+        console.log("Error verificando la versión:", error);
+      }
+    };
+
+    verificarActualizacion();
+  }, []);
+
+  const handleActualizar = () => {
+    if (apkUrl) {
+      Linking.openURL(apkUrl);
+    } else {
+      Alert.alert("Error", "No se encontró una URL de actualización.");
+    }
+  };
 
   useEffect(() => {
     const cargarSerialGuardado = async () => {
@@ -463,11 +497,12 @@ export default function Login({ navigation }) {
 
   return (
     <View style={styles.padre}>
+      {nuevaVersion ? (""):(
       <View style={styles.configuracion}>
         <TouchableOpacity onPress={() => navigation.navigate("ConfigLogin")}>
           <Text style={styles.textoboton}>CONFIG</Text>
         </TouchableOpacity>
-      </View>
+      </View>)}
 
       <Image source={require("../assets/image.png")} style={styles.profile} />
 
@@ -498,21 +533,20 @@ export default function Login({ navigation }) {
             />
           </View>
 
-          {!loginExitoso ? (
+          {nuevaVersion ? (
             <View style={styles.PadreBoton}>
-              <TouchableOpacity
-                style={styles.cajaButton}
-                onPress={handleLogin}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.textoboton}>Iniciar Sesión</Text>
-                )}
-              </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cajaButtonVersion}
+              onPress={handleActualizar}
+            >
+              <Text style={styles.textoboton}>
+                Nueva versión disponible ({nuevaVersion})
+              </Text>
+            </TouchableOpacity>
             </View>
-          ) : (
+
+          ) : loginExitoso ? (
             <>
               <Text style={styles.texto}>Seleccione una sede:</Text>
               <Picker
@@ -537,6 +571,20 @@ export default function Login({ navigation }) {
                 </TouchableOpacity>
               </View>
             </>
+          ) : (
+            <View style={styles.PadreBoton}>
+              <TouchableOpacity
+                style={styles.cajaButton}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.textoboton}>Iniciar Sesión</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           )}
 
           {/* Texto SEBTHI en la parte inferior */}
@@ -613,6 +661,16 @@ const styles = StyleSheet.create({
   PadreBoton: {
     alignItems: "center",
   },
+  cajaButtonVersion: {
+    width: 250,
+    backgroundColor: "#3200eb",
+    borderRadius: 20,
+    paddingVertical: 20,
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  
   cajaButton: {
     width: 150,
     backgroundColor: "#000000",
@@ -660,7 +718,6 @@ const styles = StyleSheet.create({
   lottie: {
     width: 150,
     height: 150,
-    
   },
   brandText: {
     marginTop: 20,
