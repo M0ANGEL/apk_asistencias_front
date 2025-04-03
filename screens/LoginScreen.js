@@ -269,6 +269,9 @@ export default function Login({ navigation }) {
 
           {/* Texto SEBTHI en la parte inferior */}
           <Text style={styles.brandText}>SEBTHI</Text>
+          <Text style={styles.serial}>
+            📱 Serial telefono: {serialTelefono ? serialTelefono : "Sin serial"}
+          </Text>
         </View>
       </ImageBackground>
     </View>
