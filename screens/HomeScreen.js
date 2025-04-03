@@ -144,7 +144,7 @@ const HomeScreen = () => {
       setLoading(false);
       return;
     }
-    navigation.navigate("RegistroUsuario", { bodegaId: bodegaId }); // Asegúrate de pasar bodegaId
+    navigation.navigate("RegistroUsuario"); // Asegúrate de pasar bodegaId
     setLoading(false);
   };
 
