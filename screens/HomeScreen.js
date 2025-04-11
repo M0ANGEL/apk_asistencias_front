@@ -21,7 +21,7 @@ const HomeScreen = () => {
   const [bodegaId, setbodegaId] = useState(null);
   const [dentroDelRango, setDentroDelRango] = useState(false);
   const [locationSubscription, setLocationSubscription] = useState(null);
-  const RANGO_PERMITIDO = 100; // Distancia en metros
+  const RANGO_PERMITIDO = 60; // Distancia en metros
   const [serialTelefono, setSerialTelefono] = useState("");
 
   useEffect(() => {
