@@ -202,6 +202,7 @@ export default function Login({ navigation }) {
               value={usuario}
               onChangeText={setUsuario}
               autoCapitalize="none"
+              editable={!loginExitoso}
             />
           </View>
 
@@ -212,6 +213,7 @@ export default function Login({ navigation }) {
               secureTextEntry
               value={password}
               onChangeText={setPassword}
+              editable={!loginExitoso}
             />
           </View>
 

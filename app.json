@@ -2,7 +2,7 @@
   "expo": {
     "name": "Asistencia Farmart",
     "slug": "asistencia-farmart",
-    "version": "1.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -23,7 +23,8 @@
       "permissions": [
         "android.permission.READ_PHONE_STATE",
         "android.permission.READ_PRIVILEGED_PHONE_STATE"
-      ]
+      ],
+      "package": "com.miguelr01.asistenciafarmart"
     },
     "extra": {
       "eas": {
