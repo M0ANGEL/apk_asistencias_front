@@ -45,7 +45,10 @@ const EditarUsuarioScreen = ({ navigation, route }) => {
 
   const saveUser = async () => {
     if (!cedula || !photo) {
-      Alert.alert("Error", "Por favor, ingresa tu cédula y toma el registro facial.");
+      Alert.alert(
+        "Error",
+        "Por favor, ingresa tu cédula y toma el registro facial."
+      );
       return;
     }
 
@@ -157,7 +160,9 @@ const EditarUsuarioScreen = ({ navigation, route }) => {
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={styles.textoboton}>
-                  {photo ? "Registro Facial Nuevo Guardada" : "Nuevo Registro Facial"}
+                  {photo
+                    ? "Registro Facial Nuevo Guardada"
+                    : "Nuevo Registro Facial"}
                 </Text>
               )}
             </TouchableOpacity>

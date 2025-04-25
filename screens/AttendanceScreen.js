@@ -72,6 +72,31 @@ const AttendanceScreen = () => {
     }
   };
 
+  const takePhotoEdit = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permiso denegado",
+        "Necesitas permitir el acceso a la cámara para tomar una foto."
+      );
+      return;
+    }
+
+    const result2 = await ImagePicker.launchCameraAsync({
+      allowsEditing: false,
+      aspect: [4, 3],
+      quality: 1,
+      cameraType: ImagePicker.CameraType.front,
+    });
+
+    if (!result2.canceled && result2.assets?.length > 0) {
+      const photoUri2 = result2.assets[0].uri;
+      setPhoto(photoUri2);
+      EdiatarRegistro(photoUri2);
+    }
+  };
+
+
   const showSuccessAlert = (message, photoUri) => {
     setAlertMessage(message);
     setShowCustomAlert(true);
@@ -91,6 +116,7 @@ const AttendanceScreen = () => {
 
     const formData = new FormData();
     formData.append("serial", serialGuardado);
+    formData.append("id", cedula);
     formData.append("foto", {
       uri: photoUri,
       type: "image/jpeg",
@@ -120,7 +146,8 @@ const AttendanceScreen = () => {
       } else {
         setErrorCount((prev) => {
           const newCount = prev + 1;
-          if (newCount >= 2) {
+          if (newCount == 1) {
+            //al ser un error dar opcion de editar
             setShowCedulaInput(true);
           }
           return newCount;
@@ -128,7 +155,8 @@ const AttendanceScreen = () => {
 
         Alert.alert(
           "Error",
-          data.message || "🫤 La foto no coincide con el usuario registrado. o usuario no registrado"
+          data.message ||
+            "🫤 La foto no coincide con el usuario registrado. o usuario no registrado, favor valdiar que el PIN este bien"
         );
       }
     } catch (error) {
@@ -139,51 +167,52 @@ const AttendanceScreen = () => {
   };
 
   //envio si hay errores de cedula
-  const sendCedulaManual = async () => {
-    setLoading(true);
-
-    if (!cedula || !selectedOption) {
+  const EdiatarRegistro = async () => {
+    if (!photo || !selectedOption || !cedula) {
       Alert.alert(
         "Error",
-        "Debes ingresar la cédula y seleccionar una opción. "
+        "No se ha tomado una foto o no se ha seleccionado una opción o falta la cédula."
       );
       return;
     }
 
+    setLoading(true);
+    const serialGuardado2 = await AsyncStorage.getItem("serialTelefono");
+
+    const formData2 = new FormData();
+    formData2.append("serial", serialGuardado2);
+    formData2.append("cedula", cedula);
+    formData2.append("foto", {
+      uri: photo,
+      type: "image/jpeg",
+      name: "photo.jpg",
+    });
+    formData2.append("tipo_marcacion", opcionNumerica[selectedOption]);
+
     try {
-      const token3 = await AsyncStorage.getItem("token");
-      const serialGuardado = await AsyncStorage.getItem("serialTelefono");
+      const token2 = await AsyncStorage.getItem("token");
 
-      const response3 = await fetch(
-        BASE_URL_ASISTENCIAS + "ValidarCedulaError",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token3}`,
-          },
-          body: JSON.stringify({
-            cedula,
-            tipo_marcacion: opcionNumerica[selectedOption],
-            serial: serialGuardado,
-          }),
-        }
-      );
+      const response2 = await fetch(BASE_URL_ASISTENCIAS + "editarUsuarioError", {
+        method: "POST",
+        body: formData2,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token2}`,
+        },
+      });
 
-      const data3 = await response3.json();
+      const data2 = await response2.json();
 
-      if (data3.status === "success") {
-        Alert.alert("Éxito", data3.message);
-        setErrorCount(0); // Reiniciamos el contador
+      if (data2.status === "success") {
+        setErrorCount(0);
+        setShowCedulaInput(false);
         setCedula("");
-        setShowCedulaInput(false); // Ocultamos el input
-      } else if (data3.status === "error") {
-        Alert.alert("Error", data3.message || "Usuario inactivo");
+        showSuccessAlert(data2.message, photo);
       } else {
-        Alert.alert("Error", data3.message || "No se pudo validar con cédula.");
+        Alert.alert("Error", data2.message || "🫤 Validación fallida.");
       }
     } catch (error) {
-      Alert.alert("Error", "Ocurrió un problema al validar la cédula.");
+      Alert.alert("Error", "Hubo un problema al validar la asistencia.");
     } finally {
       setLoading(false);
     }
@@ -194,23 +223,23 @@ const AttendanceScreen = () => {
       <Image source={require("../assets/logo.png")} style={styles.profile} />
 
       {/* CAMPO DE CÉDULA SI FALLA LA VALIDACIÓN */}
-      <>
-        {loading && (
-          <LottieView
-            source={require("../assets/loading.json")}
-            autoPlay
-            loop
-            style={styles.lottie}
-          />
-        )}
-
-        {!loading && showCedulaInput ? (
+      {loading ? (
+        <LottieView
+          source={require("../assets/loading.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      ) : (
+        <>
+          {/* Input de cédula */}
           <View style={{ marginTop: 20 }}>
             <TextInput
-              placeholder="Ingrese su cédula"
+              placeholder="Ingrese su PIN"
               value={cedula}
               onChangeText={setCedula}
               keyboardType="numeric"
+              editable={!loading} // usar 'editable' en lugar de 'disabled' para TextInput
               style={{
                 backgroundColor: "#fff",
                 padding: 15,
@@ -220,55 +249,74 @@ const AttendanceScreen = () => {
                 textAlign: "center",
               }}
             />
-            <TouchableOpacity
-              style={styles.cajaButtonCedula}
-              onPress={sendCedulaManual}
-            >
-              <Text style={styles.textoboton}>Registrar Asistencia</Text>
-            </TouchableOpacity>
           </View>
-        ) : null}
 
-        {!loading && !showCedulaInput && (
-          <TouchableOpacity
-            style={[
-              styles.cajaButton,
-              (!selectedOption || loading) && { backgroundColor: "#ccc" },
-            ]}
-            onPress={takePhoto}
-            disabled={!selectedOption || loading}
-          >
-            <Text style={styles.textoboton}>Registrar nueva asistencia</Text>
-          </TouchableOpacity>
-        )}
-      </>
-
-      {/* OPCIONES DE ASISTENCIA */}
-      <View style={styles.contenidoTarjeta}>
-        <View style={styles.opcionesContainer}>
-          {opciones.map((opcion, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.opcionButton,
-                selectedOption === opcion && styles.opcionButtonSeleccionada,
-              ]}
-              onPress={() => setSelectedOption(opcion)}
-              disabled={loading}
-            >
-              <Text
+          <>
+            {/* Contenedor en fila para los botones */}
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
+              {/* Botón de registrar facial */}
+              <TouchableOpacity
                 style={[
-                  styles.opcionTexto,
-                  selectedOption === opcion && styles.opcionTextoSeleccionada,
-                  { fontSize: 22 }, // Aumentar el tamaño del texto de las opciones
+                  styles.cajaButton,
+                  (!selectedOption || loading || !cedula) && {
+                    backgroundColor: "#ccc",
+                  },
                 ]}
+                onPress={takePhoto}
+                disabled={!selectedOption || loading || !cedula}
               >
-                {opcion}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+                <Text style={styles.textoboton}>Registrar Facial</Text>
+              </TouchableOpacity>
+
+              {/* Botón de editar registro facial */}
+              {showCedulaInput && (
+                <TouchableOpacity
+                  style={[
+                    styles.cajaButtonEditar,
+                    {
+                      backgroundColor: "#e3ac24",
+                      paddingHorizontal: 10, // opcional para darle un poco más de ancho
+                    },
+                  ]}
+                  onPress={takePhotoEdit} // 👈 así está bien
+                  disabled={!selectedOption || loading || !cedula}
+                >
+                  <Text style={styles.textoboton}>Editar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+
+          {/* Opciones de asistencia */}
+          <View style={styles.contenidoTarjeta}>
+            <View style={styles.opcionesContainer}>
+              {opciones.map((opcion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.opcionButton,
+                    selectedOption === opcion &&
+                      styles.opcionButtonSeleccionada,
+                  ]}
+                  onPress={() => setSelectedOption(opcion)}
+                  disabled={loading}
+                >
+                  <Text
+                    style={[
+                      styles.opcionTexto,
+                      selectedOption === opcion &&
+                        styles.opcionTextoSeleccionada,
+                      { fontSize: 22 },
+                    ]}
+                  >
+                    {opcion}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </>
+      )}
 
       {/* MODAL DE ÉXITO */}
       <Modal transparent visible={showCustomAlert} animationType="fade">
@@ -334,6 +382,15 @@ const styles = StyleSheet.create({
   },
   cajaButton: {
     width: 200,
+    backgroundColor: "#28a745",
+    borderRadius: 20,
+    paddingVertical: 20,
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cajaButtonEditar: {
+    width: 80,
     backgroundColor: "#28a745",
     borderRadius: 20,
     paddingVertical: 20,
