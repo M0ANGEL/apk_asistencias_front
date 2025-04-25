@@ -282,7 +282,7 @@ const AttendanceScreen = () => {
                   onPress={takePhotoEdit}
                   disabled={!selectedOption || loading || !cedula}
                 >
-                  <Text style={styles.textoboton}>Registrar Facial..</Text>
+                  <Text style={styles.textoboton}>Registrar Facial</Text>
                 </TouchableOpacity>
               )}
             </View>
