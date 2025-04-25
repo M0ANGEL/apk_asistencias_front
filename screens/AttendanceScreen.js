@@ -96,7 +96,6 @@ const AttendanceScreen = () => {
     }
   };
 
-
   const showSuccessAlert = (message, photoUri) => {
     setAlertMessage(message);
     setShowCustomAlert(true);
@@ -192,14 +191,17 @@ const AttendanceScreen = () => {
     try {
       const token2 = await AsyncStorage.getItem("token");
 
-      const response2 = await fetch(BASE_URL_ASISTENCIAS + "editarUsuarioError", {
-        method: "POST",
-        body: formData2,
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token2}`,
-        },
-      });
+      const response2 = await fetch(
+        BASE_URL_ASISTENCIAS + "editarUsuarioError",
+        {
+          method: "POST",
+          body: formData2,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token2}`,
+          },
+        }
+      );
 
       const data2 = await response2.json();
 
@@ -254,34 +256,33 @@ const AttendanceScreen = () => {
           <>
             {/* Contenedor en fila para los botones */}
             <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
-              {/* Botón de registrar facial */}
-              <TouchableOpacity
-                style={[
-                  styles.cajaButton,
-                  (!selectedOption || loading || !cedula) && {
-                    backgroundColor: "#ccc",
-                  },
-                ]}
-                onPress={takePhoto}
-                disabled={!selectedOption || loading || !cedula}
-              >
-                <Text style={styles.textoboton}>Registrar Facial</Text>
-              </TouchableOpacity>
+              {/* Botón de registrar facial: solo si NO hay error */}
+              {!showCedulaInput && (
+                <TouchableOpacity
+                  style={[
+                    styles.cajaButton,
+                    (!selectedOption || loading || !cedula) && {
+                      backgroundColor: "#ccc",
+                    },
+                  ]}
+                  onPress={takePhoto}
+                  disabled={!selectedOption || loading || !cedula}
+                >
+                  <Text style={styles.textoboton}>Registrar Facial</Text>
+                </TouchableOpacity>
+              )}
 
-              {/* Botón de editar registro facial */}
+              {/* Botón de editar registro facial: solo si HAY error */}
               {showCedulaInput && (
                 <TouchableOpacity
                   style={[
-                    styles.cajaButtonEditar,
-                    {
-                      backgroundColor: "#e3ac24",
-                      paddingHorizontal: 10, // opcional para darle un poco más de ancho
-                    },
+                    styles.cajaButton,
+                    
                   ]}
-                  onPress={takePhotoEdit} // 👈 así está bien
+                  onPress={takePhotoEdit}
                   disabled={!selectedOption || loading || !cedula}
                 >
-                  <Text style={styles.textoboton}>Editar</Text>
+                  <Text style={styles.textoboton}>Registrar Facial..</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -389,15 +390,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cajaButtonEditar: {
-    width: 80,
-    backgroundColor: "#28a745",
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginTop: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+ 
   cajaButtonCedula: {
     width: 250,
     backgroundColor: "#28a745",
