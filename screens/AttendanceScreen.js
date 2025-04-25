@@ -156,7 +156,7 @@ const AttendanceScreen = () => {
         Alert.alert(
           "Error",
           data.message ||
-            "🫤 La foto no coincide con el usuario registrado. o usuario no registrado, favor valdiar que el PIN este bien"
+            "🫤 La foto no coincide con el usuario registrado. o usuario no registrado, favor validar que el PIN este bien"
         );
       }
     } catch (error) {

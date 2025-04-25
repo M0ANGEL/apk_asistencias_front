@@ -388,9 +388,11 @@ const EnrollScreen = ({ navigation, route }) => {
   const [cedula, setCedula] = useState(route.params?.cedulaPreview || "");
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
   const [currentStep, setCurrentStep] = useState(1); // 1: Cédula, 2: Validar, 3: Foto, 4: Crear
   const [isValidated, setIsValidated] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
     if (!photo && currentStep === 3) {
@@ -404,7 +406,10 @@ const EnrollScreen = ({ navigation, route }) => {
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permiso denegado", "Necesitas permitir el acceso a la cámara.");
+      Alert.alert(
+        "Permiso denegado",
+        "Necesitas permitir el acceso a la cámara."
+      );
       return;
     }
 
@@ -461,6 +466,12 @@ const EnrollScreen = ({ navigation, route }) => {
     }
   };
 
+  //alerta para mostrar el pin del usuario creado
+  const showSuccessAlert = (message) => {
+    setAlertMessage(message);
+    setShowCustomAlert(true);
+  };
+
   const saveUser = async () => {
     if (!cedula || !photo) {
       Alert.alert("Error", "Datos incompletos");
@@ -494,8 +505,8 @@ const EnrollScreen = ({ navigation, route }) => {
       const result = await response.json();
 
       if (response.ok) {
-        Alert.alert("Éxito", "Usuario enrolado correctamente");
-        navigation.goBack(); // Regresar después de éxito
+        // Alert.alert("Éxito", result.messge);
+        showSuccessAlert(result.message);
       } else {
         Alert.alert("Error", result.error || "Error al crear usuario");
       }
@@ -529,7 +540,7 @@ const EnrollScreen = ({ navigation, route }) => {
   return (
     <View style={styles.padre}>
       <Image source={require("../assets/logo.png")} style={styles.profile} />
-      
+
       {renderStepIndicator()}
 
       {loading ? (
@@ -549,7 +560,9 @@ const EnrollScreen = ({ navigation, route }) => {
                 <TextInput
                   placeholder="Número de cédula"
                   value={cedula}
-                  onChangeText={(text) => setCedula(text.replace(/[^0-9]/g, ""))}
+                  onChangeText={(text) =>
+                    setCedula(text.replace(/[^0-9]/g, ""))
+                  }
                   keyboardType="numeric"
                   style={styles.input}
                 />
@@ -589,7 +602,10 @@ const EnrollScreen = ({ navigation, route }) => {
             <>
               <Text style={styles.stepTitle}>Paso 3: Registro facial</Text>
               <TouchableOpacity
-                style={[styles.cajaButton, photo && styles.cajaButtonFotoTomada]}
+                style={[
+                  styles.cajaButton,
+                  photo && styles.cajaButtonFotoTomada,
+                ]}
                 onPress={takePhoto}
               >
                 <Text style={styles.textoboton}>
@@ -629,8 +645,30 @@ const EnrollScreen = ({ navigation, route }) => {
         </View>
       )}
 
+      {/* MODAL DE ÉXITO */}
+      <Modal transparent visible={showCustomAlert} animationType="fade">
+        <View style={styles.customAlertContainer}>
+          <View style={styles.customAlertContent}>
+            <Text style={styles.alertMessage}>{alertMessage}</Text>
+            <TouchableOpacity
+              style={styles.alertButton}
+              onPress={() => {
+                setShowCustomAlert(false);
+                navigation.goBack(); // Regresar después de éxito
+              }}
+            >
+              <Text style={styles.alertButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de instrucciones para la foto */}
-      <Modal visible={showInstructions && currentStep === 3} transparent animationType="fade">
+      <Modal
+        visible={showInstructions && currentStep === 3}
+        transparent
+        animationType="fade"
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <LottieView
@@ -640,7 +678,9 @@ const EnrollScreen = ({ navigation, route }) => {
               style={styles.lottie}
             />
             <Text style={styles.modalText}>Asegúrate de:</Text>
-            <Text style={styles.modalList}>📸 Acercar tu rostro a la cámara</Text>
+            <Text style={styles.modalList}>
+              📸 Acercar tu rostro a la cámara
+            </Text>
             <Text style={styles.modalList}>🙎‍♂️ Solo una persona en la foto</Text>
             <Text style={styles.modalList}>🧢 Sin gorra o sombrero</Text>
             <Text style={styles.modalList}>💡 Buena iluminación</Text>
@@ -665,6 +705,45 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     padding: 20,
   },
+  customAlertContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  customAlertContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "80%",
+  },
+  alertImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "#28a745",
+  },
+  alertMessage: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#333",
+    marginBottom: 15,
+  },
+  alertButton: {
+    backgroundColor: "#28a745",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    minWidth: 100,
+  },
+  alertButtonText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
   profile: {
     width: 150,
     height: 150,
@@ -672,58 +751,58 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   contentContainer: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   stepsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 30,
   },
   step: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#ccc",
+    justifyContent: "center",
+    alignItems: "center",
   },
   activeStep: {
-    backgroundColor: '#0a2da8',
+    backgroundColor: "#0a2da8",
   },
   stepText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   stepLine: {
     height: 2,
     width: 40,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   stepTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    color: '#333',
+    color: "#333",
   },
   cajatexto: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 15,
     backgroundColor: "#eeeeee",
     borderRadius: 10,
     marginBottom: 20,
   },
   input: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   cedulaText: {
     fontSize: 16,
     marginBottom: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cajaButton: {
-    width: '100%',
+    width: "100%",
     backgroundColor: "#0a2da8",
     borderRadius: 10,
     paddingVertical: 15,
@@ -731,7 +810,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cajaButtonValidarCedula: {
-    width: '100%',
+    width: "100%",
     backgroundColor: "#f5a21b",
     borderRadius: 10,
     paddingVertical: 15,
@@ -739,7 +818,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cajaButtonCrear: {
-    width: '100%',
+    width: "100%",
     backgroundColor: "#28a745",
     borderRadius: 10,
     paddingVertical: 15,
@@ -747,7 +826,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cajaButtonFotoTomada: {
-    backgroundColor: '#28a745',
+    backgroundColor: "#28a745",
   },
   textoboton: {
     color: "#fff",
@@ -759,9 +838,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   backButtonText: {
-    color: '#0a2da8',
+    color: "#0a2da8",
     fontSize: 14,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   previewImage: {
     width: 150,
@@ -769,7 +848,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 15,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
   },
   lottie: {
     width: 150,
@@ -786,7 +865,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 15,
     alignItems: "center",
-    width: '90%',
+    width: "90%",
   },
   modalText: {
     fontSize: 18,
@@ -799,14 +878,14 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     marginTop: 20,
-    backgroundColor: '#0a2da8',
+    backgroundColor: "#0a2da8",
     paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 20,
   },
   skipButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 

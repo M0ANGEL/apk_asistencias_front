@@ -13,6 +13,7 @@ import UsuariosNoSebthi from "./screens/UsuariosNoSebthi";
 import MenuConfigScreen from "./screens/MenuConfig";
 import SedeRegistro from "./screens/SedeRegistro";
 import EditarUsuarioScreen from "./screens/EditarUsuarioScreen";
+import ConsultarUsuario from "./screens/ConsultarUsuario";
 
 const Stack = createStackNavigator();
 
@@ -81,6 +82,16 @@ export default function App() {
           component={MenuConfigScreen}
           options={{
             title: "Menu de configuracion ",
+            headerTintColor: "white",
+            headerTitleAlign: "center",
+            headerStyle: { backgroundColor: "#000000" },
+          }}
+        />
+        <Stack.Screen
+          name="Consultar"
+          component={ConsultarUsuario}
+          options={{
+            title: "Consultar Usuario",
             headerTintColor: "white",
             headerTitleAlign: "center",
             headerStyle: { backgroundColor: "#000000" },

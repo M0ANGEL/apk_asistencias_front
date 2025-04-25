@@ -175,6 +175,11 @@ const HomeScreen = () => {
           disabled={!dentroDelRango || loading}
         />
         <Boton
+          texto="🔍 Consultar Usuario"
+          onPress={() => navigation.navigate("Consultar")}
+          color="#47d0ee"
+        />
+        <Boton
           texto="Configuración"
           onPress={() => navigation.navigate("ConfigLogin")}
           color="#0d502c"
